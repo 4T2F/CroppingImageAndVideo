@@ -16,7 +16,15 @@ final class CroppingViewController: UIViewController {
     
     var cropViewTopAnchor: Constraint?
     
+    var cropViewLeadingAnchor: Constraint?
+    
     var initialCenter = CGPoint()
+    
+    private lazy var squareView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
@@ -53,6 +61,18 @@ final class CroppingViewController: UIViewController {
         return view
     }()
     
+    private lazy var leftView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        return view
+    }()
+    
+    private lazy var rightView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        return view
+    }()
+    
     private lazy var bottomView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
@@ -74,6 +94,8 @@ final class CroppingViewController: UIViewController {
         
         configUserInterface()
         configLayout()
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
+        self.view.addGestureRecognizer(pinchGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -86,16 +108,35 @@ final class CroppingViewController: UIViewController {
         view.backgroundColor = .black
         
         view.addSubview(cancelButton)
-        view.addSubview(photoImageView)
+        view.addSubview(squareView)
+        view.addSubview(topView)
+        view.addSubview(leftView)
+        view.addSubview(rightView)
+        view.addSubview(bottomView)
         
-        photoImageView.addSubview(cropView)
-        photoImageView.addSubview(topView)
-        photoImageView.addSubview(bottomView)
+        squareView.addSubview(photoImageView)
+        squareView.addSubview(cropView)
         
         view.bringSubviewToFront(cancelButton)
     }
     
     private func configLayout() {
+        squareView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        
+            if selectImage.size.width < ViewValues.width {
+                make.width.equalTo(selectImage.size.width)
+            } else {
+                make.width.equalToSuperview()
+            }
+            
+            if selectImage.size.height < ViewValues.height {
+                make.height.equalTo(selectImage.size.height)
+            } else {
+                make.height.equalToSuperview()
+            }
+        }
+        
         cancelButton.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.leading.equalToSuperview().offset(16)
@@ -119,16 +160,17 @@ final class CroppingViewController: UIViewController {
         }
 
         cropView.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            
             if selectImage.size.height < 500 {
                 make.width.equalTo(selectImage.size.height / 1.16)
                 make.height.equalTo(selectImage.size.height)
                 self.cropViewTopAnchor = make.top.equalToSuperview().constraint
+                self.cropViewLeadingAnchor = make.leading.equalToSuperview().offset((selectImage.size.width - selectImage.size.height / 1.16) / 2).constraint
             } else {
                 make.width.equalToSuperview()
                 make.height.equalTo(500)
                 self.cropViewTopAnchor = make.top.equalToSuperview().offset(selectImage.size.height / 2 - 250).constraint
+                self.cropViewLeadingAnchor = make.leading.equalToSuperview().constraint
+
             }
         }
         
@@ -141,40 +183,104 @@ final class CroppingViewController: UIViewController {
             make.leading.trailing.bottom.equalToSuperview()
             make.top.equalTo(self.cropView.snp.bottom)
         }
+        
+        leftView.snp.makeConstraints { make in
+            make.top.bottom.equalTo(squareView)
+            make.leading.equalToSuperview()
+            make.trailing.equalTo(self.cropView.snp.leading)
+        }
+        
+        rightView.snp.makeConstraints { make in
+            make.top.bottom.equalTo(squareView)
+            make.leading.equalTo(self.cropView.snp.trailing)
+            make.trailing.equalToSuperview()
+        }
+        
     }
     
     // MARK: - Actions
+    @objc func handlePinch(gesture: UIPinchGestureRecognizer) {
+        guard let gestureView = gesture.view else { return }
+        
+        if gesture.state == .began {
+            cropView.linesChangeState(isCropping: true)
+            print(0)
+
+        } else if gesture.state == .changed {
+            // photoImageView의 변환을 업데이트
+            print(1)
+            let newScale = photoImageView.transform.scaledBy(x: gesture.scale, y: gesture.scale)
+            
+            // 새로운 스케일 크기 확인
+            let newWidth = photoImageView.frame.size.width * gesture.scale
+            let newHeight = photoImageView.frame.size.height * gesture.scale
+            
+            // 원래 크기보다 작아지지 않도록 제한
+            if newWidth >= selectImage.size.width && newHeight >= selectImage.size.height {
+                photoImageView.transform = newScale
+            }
+            
+            gesture.scale = 1.0
+            
+        } else {
+            print(2)
+            cropView.linesChangeState(isCropping: false)
+        }
+    }
+    
     @objc func didSelectCancelButton(_ sender: UIButton) {
-        self.navigationController?.popViewController(animated: true)
+        self.navigationController?.popViewController(animated: false)
     }
     
     @objc func handlePanGesture(_ gestureRecognizer: UIPanGestureRecognizer) {
         let translation = gestureRecognizer.translation(in: cropView)
         if gestureRecognizer.state == .began {
-            if selectImage.size.height < 500 {
-                gestureRecognizer.state = .cancelled
-            } else {
-                cropView.linesChangeState(isCropping: true)
-            }
+            
+            cropView.linesChangeState(isCropping: true)
+            
         } else if gestureRecognizer.state == .changed {
-            initialCenter = cropView.center
             
-            cropView.center = CGPoint(
-                x: initialCenter.x,
-                y: initialCenter.y + translation.y)
-            
-            self.cropViewTopAnchor?.update(offset: cropView.frame.origin.y)
+            if selectImage.size.height < 500 {
+                initialCenter = cropView.center
+                
+                cropView.center = CGPoint(
+                    x: initialCenter.x + translation.x,
+                    y: initialCenter.y)
+                
+                self.cropViewLeadingAnchor?.update(offset: cropView.frame.origin.x)
+                
+                // 경계 체크
+                if cropView.frame.origin.x < 0 {
+                    self.cropViewLeadingAnchor?.update(offset: 0)
+                    cropView.frame.origin.x = 0
+                } else if cropView.frame.origin.x + cropView.frame.width > squareView.frame.width {
+                    self.cropViewLeadingAnchor?.update(offset: squareView.frame.width - cropView.frame.width)
+                    cropView.frame.origin.x = squareView.frame.width - cropView.frame.width
+                }
+                
+                gestureRecognizer.setTranslation(CGPoint.zero, in: cropView)
+                
+            } else {
+                initialCenter = cropView.center
+                
+                cropView.center = CGPoint(
+                    x: initialCenter.x,
+                    y: initialCenter.y + translation.y)
+                
+                self.cropViewTopAnchor?.update(offset: cropView.frame.origin.y)
 
-            // 경계 체크
-            if cropView.frame.origin.y < 0 {
-                self.cropViewTopAnchor?.update(offset: 0)
-                cropView.frame.origin.y = 0
-            } else if cropView.frame.origin.y + cropView.frame.height > photoImageView.frame.height {
-                self.cropViewTopAnchor?.update(offset: photoImageView.frame.height - cropView.frame.height)
-                cropView.frame.origin.y = photoImageView.frame.height - cropView.frame.height
+                // 경계 체크
+                if cropView.frame.origin.y < 0 {
+                    self.cropViewTopAnchor?.update(offset: 0)
+                    cropView.frame.origin.y = 0
+                } else if cropView.frame.origin.y + cropView.frame.height > squareView.frame.height {
+                    self.cropViewTopAnchor?.update(offset: squareView.frame.height - cropView.frame.height)
+                    cropView.frame.origin.y = squareView.frame.height - cropView.frame.height
+                }
+                
+                gestureRecognizer.setTranslation(CGPoint.zero, in: cropView)
             }
-            
-            gestureRecognizer.setTranslation(CGPoint.zero, in: cropView)
+
         } else if gestureRecognizer.state == .cancelled {
             cropView.linesChangeState(isCropping: false)
         } else if gestureRecognizer.state == .ended {
