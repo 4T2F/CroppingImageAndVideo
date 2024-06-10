@@ -11,6 +11,7 @@ import SnapKit
 import UIKit
 
 final class PhotoViewController: UIViewController {
+    
     // MARK: - Private properties
     private let viewModel = CropViewModel()
     
@@ -72,6 +73,7 @@ final class PhotoViewController: UIViewController {
     }()
     
     // MARK: - Life Cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -243,15 +245,31 @@ extension PhotoViewController: UICollectionViewDataSource {
 
 extension PhotoViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        viewModel.fetchImage(
-            item: indexPath.item,
-            size: CGSize(width: ViewValues.width, height: ViewValues.height),
-            contentMode: .aspectFit,
-            version: .current
-        ) { _, image in
-            let controller = CroppingViewController(selectImage: image)
-            
-            self.navigationController?.pushViewController(controller, animated: true)
+        
+        if self.videoButton.isSelected {
+            viewModel.fetchVideo(
+                phAsset: viewModel.photos[indexPath.item].phAsset,
+                size: CGSize(width: ViewValues.width, height: ViewValues.height)
+            ) { asset, _ in
+                let controller = TrimVideoControlViewController(
+                    asset: asset!,
+                    trimPositions: (0, 0))
+                
+                self.navigationController?.pushViewController(controller, animated: true)
+        
+            }
+        } else {
+            viewModel.fetchImage(
+                item: indexPath.item,
+                size: CGSize(width: ViewValues.width, height: ViewValues.height),
+                contentMode: .aspectFit,
+                version: .current
+            ) { _, image in
+                
+                let controller = CroppingViewController(selectImage: image)
+                
+                self.navigationController?.pushViewController(controller, animated: true)
+            }
         }
     }
 }

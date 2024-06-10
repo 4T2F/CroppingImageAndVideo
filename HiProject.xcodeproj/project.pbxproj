@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */; };
+		41884B8B2C16E59F0023D76B /* TrimmingControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8A2C16E59F0023D76B /* TrimmingControlView.swift */; };
+		41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */; };
+		41884B8F2C16EBDC0023D76B /* VideoTimeLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */; };
+		41884B912C16ED690023D76B /* HandleLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B902C16ED690023D76B /* HandleLayer.swift */; };
 		732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109B2C12CC02004285E5 /* CroppingViewController.swift */; };
 		732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109D2C12DF3D004285E5 /* CropViewModel.swift */; };
 		732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109F2C12E40C004285E5 /* CustomCropView.swift */; };
@@ -40,6 +45,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewController.swift; sourceTree = "<group>"; };
+		41884B8A2C16E59F0023D76B /* TrimmingControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimmingControlView.swift; sourceTree = "<group>"; };
+		41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineGenerator.swift; sourceTree = "<group>"; };
+		41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineView.swift; sourceTree = "<group>"; };
+		41884B902C16ED690023D76B /* HandleLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandleLayer.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
 		732A109D2C12DF3D004285E5 /* CropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CropViewModel.swift; sourceTree = "<group>"; };
 		732A109F2C12E40C004285E5 /* CustomCropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCropView.swift; sourceTree = "<group>"; };
@@ -85,6 +95,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		41884B852C16DB5F0023D76B /* Video */ = {
+			isa = PBXGroup;
+			children = (
+				41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */,
+				41884B862C16DB6F0023D76B /* View */,
+				41884B902C16ED690023D76B /* HandleLayer.swift */,
+			);
+			path = Video;
+			sourceTree = "<group>";
+		};
+		41884B862C16DB6F0023D76B /* View */ = {
+			isa = PBXGroup;
+			children = (
+				41884B872C16DB790023D76B /* ViewController */,
+				41884B8A2C16E59F0023D76B /* TrimmingControlView.swift */,
+				41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		41884B872C16DB790023D76B /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */,
+			);
+			path = ViewController;
+			sourceTree = "<group>";
+		};
 		7353A04A2BF264C3003A3578 = {
 			isa = PBXGroup;
 			children = (
@@ -139,6 +177,7 @@
 		7381F37C2C0EE648002AC710 /* Album */ = {
 			isa = PBXGroup;
 			children = (
+				41884B852C16DB5F0023D76B /* Video */,
 				7381F3842C0EEACB002AC710 /* Service */,
 				7381F37D2C0EE66D002AC710 /* Model */,
 				7381F37E2C0EE673002AC710 /* ViewModel */,
@@ -285,12 +324,15 @@
 				736355C12C05B59900926CBB /* CustomBirthButton.swift in Sources */,
 				73EC85142C07070C00ABE16A /* PhotoService.swift in Sources */,
 				73EC850E2C07055B00ABE16A /* PhotoViewController.swift in Sources */,
+				41884B8B2C16E59F0023D76B /* TrimmingControlView.swift in Sources */,
 				73EC85122C0706CD00ABE16A /* MediaType.swift in Sources */,
 				7353A0572BF264C3003A3578 /* AppDelegate.swift in Sources */,
+				41884B912C16ED690023D76B /* HandleLayer.swift in Sources */,
 				7381F3882C0EF803002AC710 /* PhotoCollectionViewCell.swift in Sources */,
 				736355BC2C05B58300926CBB /* ViewValues.swift in Sources */,
 				732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */,
 				736355CE2C05E61700926CBB /* CustomLineView.swift in Sources */,
+				41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */,
 				7381F37B2C0EDE60002AC710 /* SelectPhotoCollectionViewCell.swift in Sources */,
 				73EC851E2C07089000ABE16A /* PhotoCell.swift in Sources */,
 				732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */,
@@ -298,8 +340,10 @@
 				7381F3812C0EE6AB002AC710 /* SignUpViewModel.swift in Sources */,
 				732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */,
 				73EC85182C07074A00ABE16A /* AlbumService.swift in Sources */,
+				41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */,
 				736355C22C05B59900926CBB /* CustomServiceButton.swift in Sources */,
 				736355C82C05B9DC00926CBB /* LoginBirthSelectViewController.swift in Sources */,
+				41884B8F2C16EBDC0023D76B /* VideoTimeLineView.swift in Sources */,
 				73EC85162C07072F00ABE16A /* PhotoAuthService.swift in Sources */,
 				7381F3832C0EE6ED002AC710 /* Album.swift in Sources */,
 				7353A0592BF264C3003A3578 /* SceneDelegate.swift in Sources */,

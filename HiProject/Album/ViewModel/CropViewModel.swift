@@ -62,5 +62,17 @@ extension CropViewModel {
                         }
                     )
     }
+    
+    func fetchVideo(
+        phAsset: PHAsset,
+        size: CGSize,
+        completion: @escaping (AVAsset?, AVAudioMix?) -> Void
+    ) {
+        photoService.fetchVideo(
+            phAsset: phAsset,
+            size: size) { avAsset, avAudio in
+                completion(avAsset, avAudio)
+            }
+    }
 }
 

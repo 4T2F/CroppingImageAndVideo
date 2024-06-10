@@ -12,29 +12,13 @@ import UIKit
 final class CustomCropView: UIView {
     let imageSize: CGSize
     
-    private lazy var firstLineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
+    private lazy var firstLineView: UIView = makeLineView()
     
-    private lazy var secondLineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
+    private lazy var secondLineView: UIView = makeLineView()
     
-    private lazy var thirdLineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
+    private lazy var thirdLineView: UIView = makeLineView()
     
-    private lazy var fourthLineView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
+    private lazy var fourthLineView: UIView = makeLineView()
     
     init(frame: CGRect, imageSize: CGSize) {
         self.imageSize = imageSize
@@ -68,6 +52,12 @@ final class CustomCropView: UIView {
                 self.fourthLineView.isHidden = true
             }
         }
+    }
+    
+    private func makeLineView() -> UIView {
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
     }
 }
 
