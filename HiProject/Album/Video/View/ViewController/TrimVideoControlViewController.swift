@@ -14,6 +14,8 @@ import UIKit
 final class TrimVideoControlViewController: UIViewController {
     // MARK: - Public properties
     var viewModel = TrimVideoControlViewModel()
+    var timeObserver: Any?
+    var endTime = CMTime()
     
     // MARK: - Private properties
     private lazy var cancelButton: UIButton = {
@@ -37,6 +39,14 @@ final class TrimVideoControlViewController: UIViewController {
         playerLayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         playerLayer.videoGravity = .resizeAspect
         return playerLayer
+    }()
+    
+    private lazy var playTimeLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.textColor = .white
+        label.font = .customFont(forTextStyle: .footnote, weight: .bold)
+        return label
     }()
     
     private lazy var trimmingControlView: TrimmingControlView = TrimmingControlView(viewModel: viewModel)
@@ -63,14 +73,14 @@ final class TrimVideoControlViewController: UIViewController {
         configUserInterface()
         configLayout()
         setButtonActions()
-        setupBindings()
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         Task {
             await setPlayer()
             await setTrimTrack()
+            setupBindings()
         }
     }
     
@@ -80,6 +90,7 @@ final class TrimVideoControlViewController: UIViewController {
         view.addSubview(cancelButton)
         view.addSubview(videoBackgroundView)
         view.addSubview(trimmingControlView)
+        view.addSubview(playTimeLabel)
     }
     
     private func configLayout() {
@@ -100,6 +111,12 @@ final class TrimVideoControlViewController: UIViewController {
             make.bottom.equalToSuperview().offset(-80)
             make.height.equalTo(60)
         }
+        
+        playTimeLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(self.trimmingControlView.snp.top).offset(-10)
+            make.width.equalTo(150)
+        }
     }
     
     private func setButtonActions() {
@@ -114,7 +131,7 @@ final class TrimVideoControlViewController: UIViewController {
             let bounds = trimmingControlView.bounds
             let frameWidth = bounds.height * ratio / 2
             let count = Int(bounds.width / frameWidth * 2) + 1
-
+            
             await generator.videoTimeline(for: asset, in: trimmingControlView.bounds, numberOfFrames: count)
                 .replaceError(with: [])
                 .receive(on: DispatchQueue.main)
@@ -131,10 +148,12 @@ final class TrimVideoControlViewController: UIViewController {
     private func setPlayer() async {
         let composition = AVMutableComposition()
         var startTime = CMTime()
-        var endTime = CMTime()
+        var interval = CMTime()
         
         do {
             let duration = try await asset.load(.duration)
+            
+            interval = CMTime(seconds: 0.1, preferredTimescale: duration.timescale)
             
             startTime = CMTime(
                 seconds: duration.seconds * viewModel.trimPositions.0,
@@ -157,6 +176,8 @@ final class TrimVideoControlViewController: UIViewController {
             } else {
                 audioTrackComposition?.insertEmptyTimeRange(CMTimeRangeMake(start: .zero, duration: duration))
             }
+            
+            playTimeLabel.text = self.viewModel.fomattingDouble(time: startTime.seconds) + " / " + self.viewModel.fomattingDouble(time: endTime.seconds)
         } catch let error {
             print("에러: \(error)")
         }
@@ -176,12 +197,29 @@ final class TrimVideoControlViewController: UIViewController {
                 }
             }
         }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.timeObserver = self?.playerLayer.player?.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { time in
+                Task { @MainActor in
+                    self?.observeTime(time: time)
+                }
+            }
+        }
     }
     
     // MARK: - Actions
     @objc func didSelectCancelButton(_ sender: UIButton) {
-        self.playerLayer.player?.pause()
+        self.playerLayer.player = nil
+        if let timeObserver = timeObserver {
+            self.playerLayer.player?.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
+        }
         self.navigationController?.popViewController(animated: false)
+    }
+    
+    @MainActor
+    func observeTime(time: CMTime) {
+        viewModel.playheadProgress = time
     }
 }
 
@@ -192,16 +230,18 @@ fileprivate extension TrimVideoControlViewController {
     func setupBindings() {
         viewModel.$trimPositions
             .dropFirst(1)
-            .sink { _ in
+            .sink { [weak self] _ in
                 Task {
-                    await self.setPlayer()
+                    await self?.setPlayer()
                 }
             }
             .store(in: &cancellables)
-        //        trimmingControlView.$trimPositions
-        //            .dropFirst(1)
-        //            .assign(to: \.trimPositions, weakly: self)
-        //            .store(in: &cancellables)
+        
+        viewModel.$playheadProgress
+            .sink { [weak self] time in
+                self?.playTimeLabel.text =  (self?.viewModel.fomattingDouble(time: time.seconds) ?? "00:00") + " / " + (self?.viewModel.fomattingDouble(time: self?.endTime.seconds ?? 0) ?? "00:00")
+            }
+            .store(in: &cancellables)
     }
     
     func updateVideoTimeline(with images: [CGImage], assetAspectRatio: CGFloat) {
