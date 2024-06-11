@@ -204,41 +204,41 @@ extension PhotoViewController: UICollectionViewDataSource {
                     avAudio: nil))
         }
         
-//        let imageInfo = viewModel.photos[indexPath.item]
-//        let phAsset = imageInfo.phAsset
-//        let imageSize = CGSize(width: ViewValues.cellWidth, height: ViewValues.cellWidth)
-//
-//        photoService.fetchImage(
-//                        phAsset: viewModel.photos[indexPath.item],
-//                        size: imageSize,
-//                        contentMode: .aspectFill,
-//                        completion: { [weak cell] image in
-//                            cell?.setImage(info: .init(phAsset: phAsset, image: image))
-//                        }
-//                    )
+        //        let imageInfo = viewModel.photos[indexPath.item]
+        //        let phAsset = imageInfo.phAsset
+        //        let imageSize = CGSize(width: ViewValues.cellWidth, height: ViewValues.cellWidth)
+        //
+        //        photoService.fetchImage(
+        //                        phAsset: viewModel.photos[indexPath.item],
+        //                        size: imageSize,
+        //                        contentMode: .aspectFill,
+        //                        completion: { [weak cell] image in
+        //                            cell?.setImage(info: .init(phAsset: phAsset, image: image))
+        //                        }
+        //                    )
         
-//        if phAsset.mediaType == .video {
-//            
-//            photoService.fetchVideo(
-//                phAsset: phAsset,
-//                size: imageSize) { [weak cell] avAsset, avAudio in
-//                    guard let avAsset = avAsset else { return }
-//                    cell?.setPlayer(
-//                        info: .init(
-//                            phAsset: phAsset,
-//                            avAsset: avAsset,
-//                            avAudio: avAudio))
-//            }
-//        } else {
-//            photoService.fetchImage(
-//                phAsset: phAsset,
-//                size: imageSize,
-//                contentMode: .aspectFit,
-//                completion: { [weak cell] image in
-//                    cell?.prepare(info: .init(phAsset: phAsset, image: image))
-//                }
-//            )
-//        }
+        //        if phAsset.mediaType == .video {
+        //
+        //            photoService.fetchVideo(
+        //                phAsset: phAsset,
+        //                size: imageSize) { [weak cell] avAsset, avAudio in
+        //                    guard let avAsset = avAsset else { return }
+        //                    cell?.setPlayer(
+        //                        info: .init(
+        //                            phAsset: phAsset,
+        //                            avAsset: avAsset,
+        //                            avAudio: avAudio))
+        //            }
+        //        } else {
+        //            photoService.fetchImage(
+        //                phAsset: phAsset,
+        //                size: imageSize,
+        //                contentMode: .aspectFit,
+        //                completion: { [weak cell] image in
+        //                    cell?.prepare(info: .init(phAsset: phAsset, image: image))
+        //                }
+        //            )
+        //        }
         return cell
     }
 }
@@ -249,14 +249,17 @@ extension PhotoViewController: UICollectionViewDelegate {
         if self.videoButton.isSelected {
             viewModel.fetchVideo(
                 phAsset: viewModel.photos[indexPath.item].phAsset,
-                size: CGSize(width: ViewValues.width, height: ViewValues.height)
+                size: CGSize(width: ViewValues.width, height: ViewValues.height / 2)
             ) { asset, _ in
-                let controller = TrimVideoControlViewController(
-                    asset: asset!,
-                    trimPositions: (0, 0))
-                
-                self.navigationController?.pushViewController(controller, animated: true)
-        
+                DispatchQueue.main.async {
+//                    let controller = TrimVideoControlViewController(
+//                        asset: asset!,
+//                        trimPositions: (0.0, 1.0))
+                    guard let asset = asset else { return }
+                    let controller = TrimVideoControlViewController(asset: asset)
+                    
+                    self.navigationController?.pushViewController(controller, animated: true)
+                }
             }
         } else {
             viewModel.fetchImage(

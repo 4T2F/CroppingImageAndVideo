@@ -200,7 +200,7 @@ final class CroppingViewController: UIViewController {
     
     // MARK: - Actions
     @objc func handlePinch(gesture: UIPinchGestureRecognizer) {
-        guard let gestureView = gesture.view else { return }
+        guard let _ = gesture.view else { return }
         
         if gesture.state == .began {
             cropView.linesChangeState(isCropping: true)

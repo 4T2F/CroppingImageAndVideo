@@ -26,11 +26,13 @@ extension VideoTimelineView {
     func configure(with frames: [CGImage], assetAspectRatio: CGFloat) {
         subviews.forEach { $0.removeFromSuperview() }
         
-        let width = bounds.height * assetAspectRatio
-
+        let width = bounds.height * assetAspectRatio / 4
+        print(width)
         frames.enumerated().forEach {
             let imageView = UIImageView()
             imageView.image = UIImage(cgImage: $0.1, scale: 1.0, orientation: .up)
+//            imageView.layer.borderWidth = 1
+//            imageView.layer.borderColor = UIColor(named: "mainColor")?.cgColor
             addSubview(imageView)
             
             imageView.snp.makeConstraints { make in
@@ -41,12 +43,12 @@ extension VideoTimelineView {
 
             if $0.0 == 0 {
                 imageView.snp.makeConstraints { make in
-                    make.left.equalToSuperview() // 왼쪽 고정
+                    make.leading.equalToSuperview() // 왼쪽 고정
                 }
             } else {
                 let previousImageView = subviews[$0.0 - 1]
                 imageView.snp.makeConstraints { make in
-                    make.left.equalTo(previousImageView.snp.right) // 이전 이미지뷰의 오른쪽에 위치
+                    make.leading.equalTo(previousImageView.snp.trailing) // 이전 이미지뷰의 오른쪽에 위치
                 }
             }
         }

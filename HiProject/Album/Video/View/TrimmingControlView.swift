@@ -16,7 +16,8 @@ public class TrimmingControlView: UIControl {
 
     @Published var isTrimming: Bool = false
 
-    @Published public var trimPositions: (Double, Double)
+    //@Published public var trimPositions: (Double, Double)
+    var viewModel: TrimVideoControlViewModel
 
     public override var bounds: CGRect {
         didSet {
@@ -41,7 +42,7 @@ public class TrimmingControlView: UIControl {
         }
     }
 
-    private var handleWidth: CGFloat = 20.0
+    private var handleWidth: CGFloat = 7.0
 
     private var isLeftHandleHighlighted = false
     private var isRightHandleHighlighted = false
@@ -61,14 +62,19 @@ public class TrimmingControlView: UIControl {
     private lazy var timeline: VideoTimelineView = makeVideoTimeline()
 
     // MARK: Init
-
-    init(trimPositions: (Double, Double)) {
-        self.trimPositions = trimPositions
-        internalLeftTrimValue = CGFloat(trimPositions.0)
-        internalRightTrimValue = CGFloat(trimPositions.1)
-        
+    init(viewModel: TrimVideoControlViewModel) {
+        self.viewModel = viewModel
+        internalLeftTrimValue = CGFloat(viewModel.trimPositions.0)
+        internalRightTrimValue = CGFloat(viewModel.trimPositions.1)
         super.init(frame: .zero)
     }
+//    init(trimPositions: (Double, Double)) {
+//        self.trimPositions = trimPositions
+//        internalLeftTrimValue = CGFloat(trimPositions.0)
+//        internalRightTrimValue = CGFloat(trimPositions.1)
+//        
+//        super.init(frame: .zero)
+//    }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
@@ -110,7 +116,8 @@ public class TrimmingControlView: UIControl {
         isRightHandleHighlighted = false
         isTrimming = false
 
-        trimPositions = (Double(internalLeftTrimValue), Double(internalRightTrimValue))
+        viewModel.trimPositions = (Double(internalLeftTrimValue), Double(internalRightTrimValue))
+        //trimPositions = (Double(internalLeftTrimValue), Double(internalRightTrimValue))
     }
 }
 
@@ -172,9 +179,9 @@ fileprivate extension TrimmingControlView {
 
         leftHandle.frame = CGRect(
             x: bounds.width * internalLeftTrimValue,
-            y: 0,
+            y: -5,
             width: handleWidth,
-            height: bounds.height
+            height: bounds.height + 10
         )
 
         leftDimmedBackground.frame = CGRect(
@@ -193,9 +200,9 @@ fileprivate extension TrimmingControlView {
 
         rightHandle.frame = CGRect(
             x: bounds.width * internalRightTrimValue - handleWidth,
-            y: 0,
+            y: -5,
             width: handleWidth,
-            height: bounds.height
+            height: bounds.height + 10
         )
 
         rightDimmedBackground.frame = CGRect(

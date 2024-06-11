@@ -12,6 +12,7 @@
 		41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */; };
 		41884B8F2C16EBDC0023D76B /* VideoTimeLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */; };
 		41884B912C16ED690023D76B /* HandleLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B902C16ED690023D76B /* HandleLayer.swift */; };
+		7307A4542C17301B007074AC /* TrimVideoControlViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7307A4532C17301B007074AC /* TrimVideoControlViewModel.swift */; };
 		732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109B2C12CC02004285E5 /* CroppingViewController.swift */; };
 		732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109D2C12DF3D004285E5 /* CropViewModel.swift */; };
 		732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109F2C12E40C004285E5 /* CustomCropView.swift */; };
@@ -50,6 +51,7 @@
 		41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineGenerator.swift; sourceTree = "<group>"; };
 		41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineView.swift; sourceTree = "<group>"; };
 		41884B902C16ED690023D76B /* HandleLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandleLayer.swift; sourceTree = "<group>"; };
+		7307A4532C17301B007074AC /* TrimVideoControlViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewModel.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
 		732A109D2C12DF3D004285E5 /* CropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CropViewModel.swift; sourceTree = "<group>"; };
 		732A109F2C12E40C004285E5 /* CustomCropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCropView.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */,
+				7307A4522C172F03007074AC /* ViewModel */,
 				41884B862C16DB6F0023D76B /* View */,
 				41884B902C16ED690023D76B /* HandleLayer.swift */,
 			);
@@ -121,6 +124,14 @@
 				41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */,
 			);
 			path = ViewController;
+			sourceTree = "<group>";
+		};
+		7307A4522C172F03007074AC /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				7307A4532C17301B007074AC /* TrimVideoControlViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		7353A04A2BF264C3003A3578 = {
@@ -343,6 +354,7 @@
 				41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */,
 				736355C22C05B59900926CBB /* CustomServiceButton.swift in Sources */,
 				736355C82C05B9DC00926CBB /* LoginBirthSelectViewController.swift in Sources */,
+				7307A4542C17301B007074AC /* TrimVideoControlViewModel.swift in Sources */,
 				41884B8F2C16EBDC0023D76B /* VideoTimeLineView.swift in Sources */,
 				73EC85162C07072F00ABE16A /* PhotoAuthService.swift in Sources */,
 				7381F3832C0EE6ED002AC710 /* Album.swift in Sources */,
