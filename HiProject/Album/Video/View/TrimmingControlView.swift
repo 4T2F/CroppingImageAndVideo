@@ -8,6 +8,7 @@
 import SnapKit
 
 import AVFoundation
+import Combine
 import UIKit
 
 public class TrimmingControlView: UIControl {
@@ -22,6 +23,7 @@ public class TrimmingControlView: UIControl {
     public override var bounds: CGRect {
         didSet {
             updateLeftHandleFrame()
+            updatePlayHeadProgressBarFrame()
             updateRightHandleFrame()
         }
     }
@@ -35,6 +37,12 @@ public class TrimmingControlView: UIControl {
             updateLeftHandleFrame()
         }
     }
+    
+    public var internalPlayHeadProgressValue: CGFloat {
+        didSet {
+            updatePlayHeadProgressBarFrame()
+        }
+    }
 
     public var internalRightTrimValue: CGFloat {
         didSet {
@@ -43,7 +51,7 @@ public class TrimmingControlView: UIControl {
     }
 
     private var handleWidth: CGFloat = 7.0
-
+    private var playHeadProgressBarWidth: CGFloat = 5.0
     private var isLeftHandleHighlighted = false
     private var isRightHandleHighlighted = false
 
@@ -57,14 +65,18 @@ public class TrimmingControlView: UIControl {
 
     private lazy var rightHandle: CALayer = makeRightHandle()
     private lazy var leftHandle: CALayer = makeLeftHandle()
+    private lazy var playHeadProgressBar: CALayer = makePlayHeadProgressBar()
     private lazy var rightDimmedBackground: CALayer = makeRightDimmedBackground()
     private lazy var leftDimmedBackground: CALayer = makeLeftDimmedBackground()
     private lazy var timeline: VideoTimelineView = makeVideoTimeline()
+
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: Init
     init(viewModel: TrimVideoControlViewModel) {
         self.viewModel = viewModel
         internalLeftTrimValue = CGFloat(viewModel.trimPositions.0)
+        internalPlayHeadProgressValue = CGFloat(viewModel.trimPositions.0)
         internalRightTrimValue = CGFloat(viewModel.trimPositions.1)
         super.init(frame: .zero)
     }
@@ -88,6 +100,8 @@ public class TrimmingControlView: UIControl {
 
     public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         let location = touch.location(in: self)
+        playHeadProgressBar.isHidden = true
+
         if leftHandle.frame.contains(location) {
             isTrimming = true
             isLeftHandleHighlighted = true
@@ -115,7 +129,8 @@ public class TrimmingControlView: UIControl {
         isLeftHandleHighlighted = false
         isRightHandleHighlighted = false
         isTrimming = false
-
+        playHeadProgressBar.isHidden = false
+        
         viewModel.trimPositions = (Double(internalLeftTrimValue), Double(internalRightTrimValue))
         //trimPositions = (Double(internalLeftTrimValue), Double(internalRightTrimValue))
     }
@@ -165,6 +180,8 @@ fileprivate extension TrimmingControlView {
         layer.addSublayer(rightDimmedBackground)
         layer.addSublayer(leftHandle)
         layer.addSublayer(rightHandle)
+        layer.addSublayer(playHeadProgressBar)
+
     }
 
     func setupConstraints() {
@@ -191,6 +208,19 @@ fileprivate extension TrimmingControlView {
             height: bounds.height
         )
 
+        CATransaction.commit()
+    }
+    
+    func updatePlayHeadProgressBarFrame() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        playHeadProgressBar.frame = CGRect(
+            x: leftHandle.frame.origin.x + (rightHandle.frame.origin.x - leftHandle.frame.origin.x) * internalPlayHeadProgressValue,
+            y: -2.5,
+            width: handleWidth,
+            height: bounds.height + 5)
+        
         CATransaction.commit()
     }
 
@@ -229,6 +259,15 @@ fileprivate extension TrimmingControlView {
         HandleLayer(side: .left)
     }
 
+    func makePlayHeadProgressBar() -> CALayer {
+        let layer = CALayer()
+        layer.cornerRadius = 3.5
+        layer.isHidden = false
+        layer.backgroundColor = UIColor.subMain.cgColor
+        
+        return layer
+    }
+    
     func makeRightDimmedBackground() -> CALayer {
         let layer = CALayer()
         layer.backgroundColor = UIColor.black.withAlphaComponent(0.5).cgColor
