@@ -239,9 +239,13 @@ fileprivate extension TrimVideoControlViewController {
         
         viewModel.$playheadProgress
             .sink { [weak self] time in
-                self?.playTimeLabel.text = (self?.viewModel.fomattingDouble(time: time.seconds) ?? "00:00") + " / " + (self?.viewModel.fomattingDouble(time: self?.endTime.seconds ?? 0) ?? "00:00")
-                
-                self?.trimmingControlView.internalPlayHeadProgressValue = (time.seconds - (self?.startTime.seconds ?? 0)) / ((self?.endTime.seconds ?? 1) - (self?.startTime.seconds ?? 0))
+                if self?.endTime.seconds ?? 1 <= time.seconds {
+                    self?.playerLayer.player?.pause()
+                } else {
+                    self?.playTimeLabel.text = (self?.viewModel.fomattingDouble(time: time.seconds) ?? "00:00") + " / " + (self?.viewModel.fomattingDouble(time: self?.endTime.seconds ?? 0) ?? "00:00")
+                    
+                    self?.trimmingControlView.internalPlayHeadProgressValue = (time.seconds - (self?.startTime.seconds ?? 0)) / ((self?.endTime.seconds ?? 1) - (self?.startTime.seconds ?? 0))
+                }
                 
             }
             .store(in: &cancellables)
