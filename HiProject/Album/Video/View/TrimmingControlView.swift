@@ -117,9 +117,13 @@ public class TrimmingControlView: UIControl {
         let location = touch.location(in: self)
 
         if isLeftHandleHighlighted {
-            internalLeftTrimValue = self.leftHandleValue(for: location.x)
+            if location.x <= rightHandle.frame.origin.x - 10 {
+                internalLeftTrimValue = self.leftHandleValue(for: location.x)
+            }
         } else if isRightHandleHighlighted {
-            internalRightTrimValue = self.rightHandleValue(for: location.x)
+            if location.x >= leftHandle.frame.origin.x + 10 {
+                internalRightTrimValue = self.rightHandleValue(for: location.x)
+            }
         }
 
         return true
@@ -175,18 +179,20 @@ fileprivate extension TrimmingControlView {
 
     func setupView() {
         addSubview(timeline)
-
+        
         layer.addSublayer(leftDimmedBackground)
         layer.addSublayer(rightDimmedBackground)
+        layer.addSublayer(playHeadProgressBar)
         layer.addSublayer(leftHandle)
         layer.addSublayer(rightHandle)
-        layer.addSublayer(playHeadProgressBar)
 
     }
 
     func setupConstraints() {
         timeline.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.bottom.equalToSuperview()
+            make.leading.equalToSuperview().offset(7)
+            make.trailing.equalToSuperview().offset(-7)
         }
     }
 
@@ -195,7 +201,7 @@ fileprivate extension TrimmingControlView {
         CATransaction.setDisableActions(true)
 
         leftHandle.frame = CGRect(
-            x: bounds.width * internalLeftTrimValue,
+            x: (bounds.width * internalLeftTrimValue),
             y: -5,
             width: handleWidth,
             height: bounds.height + 10
@@ -214,11 +220,11 @@ fileprivate extension TrimmingControlView {
     func updatePlayHeadProgressBarFrame() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        
+                
         playHeadProgressBar.frame = CGRect(
-            x: leftHandle.frame.origin.x + (rightHandle.frame.origin.x - leftHandle.frame.origin.x) * internalPlayHeadProgressValue,
+            x: (leftHandle.frame.origin.x + 5) + (rightHandle.frame.origin.x - leftHandle.frame.origin.x - 8.5) * internalPlayHeadProgressValue,
             y: -2.5,
-            width: handleWidth,
+            width: playHeadProgressBarWidth,
             height: bounds.height + 5)
         
         CATransaction.commit()

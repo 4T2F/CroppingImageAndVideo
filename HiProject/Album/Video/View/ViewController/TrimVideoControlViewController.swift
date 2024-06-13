@@ -131,7 +131,7 @@ final class TrimVideoControlViewController: UIViewController {
             let ratio = abs(assetSize.width) / abs(assetSize.height)
             let bounds = trimmingControlView.bounds
             let frameWidth = bounds.height * ratio / 2
-            let count = Int(bounds.width / frameWidth * 2) + 1
+            let count = Int((bounds.width - 14) / frameWidth * 2) + 1
             
             await generator.videoTimeline(for: asset, in: trimmingControlView.bounds, numberOfFrames: count)
                 .replaceError(with: [])
@@ -158,6 +158,7 @@ final class TrimVideoControlViewController: UIViewController {
             startTime = CMTime(
                 seconds: duration.seconds * viewModel.trimPositions.0,
                 preferredTimescale: duration.timescale)
+            
             endTime = CMTime(
                 seconds: duration.seconds * viewModel.trimPositions.1,
                 preferredTimescale: duration.timescale)
@@ -200,10 +201,11 @@ final class TrimVideoControlViewController: UIViewController {
 
         DispatchQueue.main.async { [weak self] in
             self?.timeObserver = self?.playerLayer.player?.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { time in
-                Task { @MainActor in
+                Task {  @MainActor in
                     self?.observeTime(time: time)
                 }
             }
+            
         }
     }
     
@@ -244,9 +246,10 @@ fileprivate extension TrimVideoControlViewController {
                 } else {
                     self?.playTimeLabel.text = (self?.viewModel.fomattingDouble(time: time.seconds) ?? "00:00") + " / " + (self?.viewModel.fomattingDouble(time: self?.endTime.seconds ?? 0) ?? "00:00")
                     
+//                    print("타임 \(time.seconds) startTime \(self?.startTime.seconds ?? 0) endTime \(self?.endTime.seconds ?? 1)")
+    
                     self?.trimmingControlView.internalPlayHeadProgressValue = (time.seconds - (self?.startTime.seconds ?? 0)) / ((self?.endTime.seconds ?? 1) - (self?.startTime.seconds ?? 0))
                 }
-                
             }
             .store(in: &cancellables)
     }

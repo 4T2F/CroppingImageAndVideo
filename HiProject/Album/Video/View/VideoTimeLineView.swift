@@ -31,8 +31,8 @@ extension VideoTimelineView {
         frames.enumerated().forEach {
             let imageView = UIImageView()
             imageView.image = UIImage(cgImage: $0.1, scale: 1.0, orientation: .up)
-//            imageView.layer.borderWidth = 1
-//            imageView.layer.borderColor = UIColor(named: "mainColor")?.cgColor
+            //            imageView.layer.borderWidth = 1
+            //            imageView.layer.borderColor = UIColor(named: "mainColor")?.cgColor
             addSubview(imageView)
             
             imageView.snp.makeConstraints { make in
@@ -40,7 +40,7 @@ extension VideoTimelineView {
                 make.height.equalTo(self)      // 높이 매칭
                 make.width.equalTo(width)      // 너비 설정
             }
-
+            
             if $0.0 == 0 {
                 imageView.snp.makeConstraints { make in
                     make.leading.equalToSuperview() // 왼쪽 고정
