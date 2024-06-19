@@ -10,22 +10,22 @@ import SnapKit
 import UIKit
 import AVFoundation
 
-final class VideoTrimmer: UIControl {
-    
+class VideoTrimmer: UIControl {
+
     static let didBeginTrimming = UIControl.Event(rawValue:     0b00000001 << 24)
     static let selectedRangeChanged = UIControl.Event(rawValue: 0b00000010 << 24)
     static let didEndTrimming = UIControl.Event(rawValue:       0b00000100 << 24)
- 
+
     static let didBeginScrubbing = UIControl.Event(rawValue:    0b00001000 << 24)
     static let progressChanged = UIControl.Event(rawValue:      0b00010000 << 24)
     static let didEndScrubbing = UIControl.Event(rawValue:      0b00100000 << 24)
-    
+
     private struct Thumbnail {
         let uuid = UUID()
         let imageView: UIImageView
         let time: CMTime
     }
-    
+
     let thumbView = VideoTrimmerThumb()
     private let wrapperView = UIView()
     private let shadowView = UIView()
@@ -38,14 +38,14 @@ final class VideoTrimmer: UIControl {
     private let trailingThumbRest = UIView()
     private let progressIndicator = UIView()
     private let progressIndicatorControl = UIControl()
-    
+
     var horizontalInset: CGFloat = 16 {
         didSet {
             guard horizontalInset != oldValue else {return}
             setNeedsLayout()
         }
     }
-    
+
     var asset: AVAsset? {
         didSet {
             if let asset = asset {
@@ -56,21 +56,22 @@ final class VideoTrimmer: UIControl {
                         selectedRange = range
                         lastKnownViewSizeForThumbnailGeneration = .zero
                         setNeedsLayout()
+                    
                     } catch {
-                        print("이게 ㄷ")
+                        print("duration 불러오기 실패: \(error)")
                     }
                 }
             }
         }
     }
-    
+
     var videoComposition: AVVideoComposition? {
         didSet {
             lastKnownViewSizeForThumbnailGeneration = .zero
             setNeedsLayout()
         }
     }
-    
+
     var minimumDuration: CMTime = .zero
 
     var range: CMTimeRange = .invalid {
@@ -78,25 +79,24 @@ final class VideoTrimmer: UIControl {
             setNeedsLayout()
         }
     }
-    
+
     var selectedRange: CMTimeRange = .invalid {
         didSet {
             setNeedsLayout()
         }
     }
-    
+
     enum ProgressIndicatorMode {
         case hiddenOnlyWhenTrimming
         case alwaysShown
         case alwaysHidden
     }
-    
     var progressIndicatorMode = ProgressIndicatorMode.hiddenOnlyWhenTrimming {
         didSet {
             updateProgressIndicator()
         }
     }
-    
+
     func setProgressIndicatorMode(_ mode: ProgressIndicatorMode, animated: Bool) {
         guard progressIndicatorMode != mode else {return}
 
@@ -110,12 +110,13 @@ final class VideoTrimmer: UIControl {
         }
     }
 
+    // defines where the progress indicator is shown.
     var progress: CMTime = .zero {
         didSet {
             setNeedsLayout()
         }
     }
-    
+
     func setProgress(_ progress: CMTime, animated: Bool) {
         guard CMTimeCompare(self.progress, progress) != 0 else {return}
 
@@ -126,13 +127,14 @@ final class VideoTrimmer: UIControl {
             })
         }
     }
-    
+
+
     enum TrimmingState {
         case none
         case leading
         case trailing
     }
-    
+
     private(set) var trimmingState = TrimmingState.none {
         didSet {
             UIViewPropertyAnimator.runningPropertyAnimator(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction], animations: {
@@ -141,14 +143,18 @@ final class VideoTrimmer: UIControl {
             })
         }
     }
-    
+
+    private(set) var isZoomedIn = false
+    private(set) var zoomedInRange: CMTimeRange = .zero
+
+    private(set) var isScrubbing = false
+
     var trackBackgroundColor = UIColor.black {
         didSet {
             thumbnailWrapperView.backgroundColor = trackBackgroundColor
         }
     }
 
-    
     var thumbRestColor = UIColor.black {
         didSet {
             leadingThumbRest.backgroundColor = thumbRestColor
@@ -159,7 +165,7 @@ final class VideoTrimmer: UIControl {
     var visibleRange: CMTimeRange  {
         return isZoomedIn == true ? zoomedInRange : range
     }
-    
+
     var selectedTime: CMTime {
         switch trimmingState {
             case .none: return .zero
@@ -167,18 +173,12 @@ final class VideoTrimmer: UIControl {
             case .trailing: return selectedRange.end
         }
     }
-    
+
     private (set) var leadingGestureRecognizer: UILongPressGestureRecognizer!
     private (set) var trailingGestureRecognizer: UILongPressGestureRecognizer!
     private (set) var progressGestureRecognizer: UILongPressGestureRecognizer!
     private (set) var thumbnailInteractionGestureRecognizer: UILongPressGestureRecognizer!
 
-    private(set) var isZoomedIn = false
-    private(set) var zoomedInRange: CMTimeRange = .zero
-
-    private(set) var isScrubbing = false
-
-    
     private var grabberOffset = CGFloat(0)
     private var zoomWaitTimer: Timer?
 
@@ -190,7 +190,9 @@ final class VideoTrimmer: UIControl {
 
     private var impactFeedbackGenerator: UIImpactFeedbackGenerator?
     private var didClampWhilePanning = false
-    
+
+
+    // MARK: - Private
     private func setup() {
         addSubview(thumbnailClipView)
         thumbnailClipView.addSubview(thumbnailWrapperView)
@@ -266,77 +268,84 @@ final class VideoTrimmer: UIControl {
         thumbView.addGestureRecognizer(thumbnailInteractionGestureRecognizer)
     }
 
-
-    private func regenerateThumbnailsIfNeeded() async  {
+    private func regenerateThumbnailsIfNeeded() {
         let size = bounds.size
         guard size.width > 0 && size.height > 0 else {return}
         guard lastKnownViewSizeForThumbnailGeneration != size || CMTimeRangeEqual(lastKnownThumbnailRange, visibleRange) == false else {return}
         guard let asset = asset else {return}
-        
-        do {
-            guard let track = try await asset.loadTracks(withMediaType: .video).first else {return}
 
-            let fixedSize = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
-            
-            let generator = AVAssetImageGenerator(asset: asset)
-            generator.apertureMode = .cleanAperture
-            generator.videoComposition = videoComposition
-            self.generator = generator
-            
-            let height = size.height - thumbView.edgeHeight * 2
-            thumbnailSize = CGSize(width: height / fixedSize.height * fixedSize.width, height: height)
-            
-            let numberOfThumbnails = Int(ceil(size.width / thumbnailSize.width))
+        lastKnownViewSizeForThumbnailGeneration = size
+        lastKnownThumbnailRange = visibleRange
+        Task {
+            do {
+                let videoTracks = try await asset.loadTracks(withMediaType: .video)
+                guard let track = videoTracks.first else { return }
+                
+                let naturalSize = try await track.load(.naturalSize)
+                let transform = try await track.load(.preferredTransform)
+                let fixedSize = naturalSize.applyingVideoTransform(transform)
+                
+                let generator = AVAssetImageGenerator(asset: asset)
+                generator.apertureMode = .cleanAperture
+                generator.videoComposition = videoComposition
+                self.generator = generator
+                
+                let height = size.height - thumbView.edgeHeight * 2
+                thumbnailSize = CGSize(width: height / fixedSize.height * fixedSize.width, height: height)
+                let numberOfThumbnails = Int(ceil(size.width / thumbnailSize.width))
+                
+                var newThumbnails = Array<Thumbnail>()
+                let thumbnailDuration = visibleRange.duration.seconds / Double(numberOfThumbnails)
+                var times = Array<NSValue>()
+                
+                let assetDuration = try await asset.load(.duration)
 
-            var newThumbnails = Array<Thumbnail>()
-            let thumbnailDuration = visibleRange.duration.seconds / Double(numberOfThumbnails)
-            var times = Array<NSValue>()
-
-            for index in -3..<numberOfThumbnails + 6 {
-                let time = await CMTimeAdd(visibleRange.start, CMTime(seconds: thumbnailDuration * Double(index), preferredTimescale: try asset.load(.duration).timescale * 2))
-                guard CMTimeCompare(time, .zero) != -1 else {continue}
-                times.append(NSValue(time: time))
-
-                let newThumbnail = Thumbnail(imageView: UIImageView(), time: time)
-                self.thumbnailTrackView.addSubview(newThumbnail.imageView)
-                newThumbnails.append(newThumbnail)
-            }
-            
-            generator.appliesPreferredTrackTransform = true
-            generator.maximumSize = CGSize(width: thumbnailSize.width * UIScreen.main.scale, height: thumbnailSize.height * UIScreen.main.scale)
-            
-            let oldThumbnails = thumbnails
-            thumbnails.append(contentsOf: newThumbnails)
-            
-            UIView.animate(withDuration: 0.25, delay: 0.25, options: [.beginFromCurrentState], animations: {
-                oldThumbnails.forEach {$0.imageView.alpha = 0}
-            }, completion: { _ in
-                oldThumbnails.forEach {$0.imageView.removeFromSuperview()}
-                let uuidsToRemove = Set(oldThumbnails.map({$0.uuid}))
-                self.thumbnails.removeAll(where: {uuidsToRemove.contains($0.uuid)})
-            })
-            
-            var seenIndex = 0
-            generator.requestedTimeToleranceBefore = .zero
-            generator.requestedTimeToleranceAfter = .zero
-            generator.generateCGImagesAsynchronously(forTimes: times) { requestedTime, cgImage, actualTime, result, error in
-                DispatchQueue.main.async {
-                    seenIndex += 1
-
-                    guard let cgImage = cgImage else {return}
-                    let image = UIImage(cgImage: cgImage)
-
-                    let imageView = newThumbnails[seenIndex - 1].imageView
-                    UIView.transition(with: imageView, duration: 0.25, options: [.transitionCrossDissolve], animations: {
-                        imageView.image = image
-                    })
+                for index in -3..<numberOfThumbnails + 6 {
+                    let time = CMTimeAdd(visibleRange.start, CMTime(seconds: thumbnailDuration * Double(index), preferredTimescale: assetDuration.timescale * 2))
+                    guard CMTimeCompare(time, .zero) != -1 else {continue}
+                    times.append(NSValue(time: time))
+                    
+                    let newThumbnail = Thumbnail(imageView: UIImageView(), time: time)
+                    self.thumbnailTrackView.addSubview(newThumbnail.imageView)
+                    newThumbnails.append(newThumbnail)
                 }
+                
+                generator.appliesPreferredTrackTransform = true
+                generator.maximumSize = CGSize(width: thumbnailSize.width * UIScreen.main.scale, height: thumbnailSize.height * UIScreen.main.scale)
+                
+                let oldThumbnails = thumbnails
+                thumbnails.append(contentsOf: newThumbnails)
+                
+                UIView.animate(withDuration: 0.25, delay: 0.25, options: [.beginFromCurrentState], animations: {
+                    oldThumbnails.forEach {$0.imageView.alpha = 0}
+                }, completion: { _ in
+                    oldThumbnails.forEach {$0.imageView.removeFromSuperview()}
+                    let uuidsToRemove = Set(oldThumbnails.map({$0.uuid}))
+                    self.thumbnails.removeAll(where: {uuidsToRemove.contains($0.uuid)})
+                })
+                
+                var seenIndex = 0
+                generator.requestedTimeToleranceBefore = .zero
+                generator.requestedTimeToleranceAfter = .zero
+                generator.generateCGImagesAsynchronously(forTimes: times) { requestedTime, cgImage, actualTime, result, error in
+                    DispatchQueue.main.async {
+                        seenIndex += 1
+                        
+                        guard let cgImage = cgImage else {return}
+                        let image = UIImage(cgImage: cgImage)
+                        
+                        let imageView = newThumbnails[seenIndex - 1].imageView
+                        UIView.transition(with: imageView, duration: 0.25, options: [.transitionCrossDissolve], animations: {
+                            imageView.image = image
+                        })
+                    }
+                }
+            } catch {
+                print("thumbnails regenerate 실패: \(error)")
             }
-        } catch {
-            print("오류")
         }
     }
-    
+
     private func timeForLocation(_ x: CGFloat) -> CMTime {
         let size = bounds.size
         let inset = thumbView.chevronWidth + horizontalInset
@@ -349,7 +358,7 @@ final class VideoTrimmer: UIControl {
         let timeDifference = CMTime(seconds: Double(offset / ratio), preferredTimescale: 600)
         return CMTimeAdd(visibleRange.start, timeDifference)
     }
-    
+
     private func locationForTime(_ time: CMTime) -> CGFloat {
         let size = bounds.size
         let inset = thumbView.chevronWidth + horizontalInset
@@ -373,7 +382,7 @@ final class VideoTrimmer: UIControl {
             self.zoomIfNeeded()
         })
     }
-    
+
     private func stopZoomWaitTimer() {
         zoomWaitTimer?.invalidate()
         zoomWaitTimer = nil
@@ -384,7 +393,7 @@ final class VideoTrimmer: UIControl {
         isZoomedIn = false
         animateChanges()
     }
-    
+
     private func zoomIfNeeded() {
         guard isZoomedIn == false else {return}
 
@@ -412,7 +421,7 @@ final class VideoTrimmer: UIControl {
 
         UISelectionFeedbackGenerator().selectionChanged()
     }
-    
+
     private func animateChanges() {
         setNeedsLayout()
         thumbView.setNeedsLayout()
@@ -421,7 +430,7 @@ final class VideoTrimmer: UIControl {
             self.thumbView.layoutIfNeeded()
         })
     }
-    
+
     private func startPanning() {
         sendActions(for: Self.didBeginTrimming)
         UISelectionFeedbackGenerator().selectionChanged()
@@ -473,7 +482,7 @@ final class VideoTrimmer: UIControl {
         progressIndicatorControl.alpha = progressIndicator.alpha
     }
 
-    
+
     // MARK: - Input
     @objc private func thumbnailPanned(_ sender: UILongPressGestureRecognizer) {
         progressGrabberPanned(sender)
@@ -534,6 +543,7 @@ final class VideoTrimmer: UIControl {
         }
     }
 
+
     @objc private func leadingGrabberPanned(_ sender: UILongPressGestureRecognizer) {
         switch sender.state {
             case .began:
@@ -591,7 +601,7 @@ final class VideoTrimmer: UIControl {
                 break
         }
     }
-    
+
     @objc private func trailingGrabberPanned(_ sender: UILongPressGestureRecognizer) {
         switch sender.state {
             case .began:
@@ -649,14 +659,14 @@ final class VideoTrimmer: UIControl {
                 break
         }
     }
-    
+
     // MARK: - UIView
 
     override var intrinsicContentSize: CGSize {
         return CGSize(width: UIView.noIntrinsicMetric, height: 50)
     }
-    
-    func layoutSubviews() async {
+
+    override func layoutSubviews() {
         super.layoutSubviews()
 
         let size = bounds.size
@@ -672,124 +682,59 @@ final class VideoTrimmer: UIControl {
             left = -inset
         }
 
+        let rect = CGRect(origin: .zero, size: size)
+        shadowView.frame = rect
+        wrapperView.frame = rect
+        thumbView.frame = CGRect(x: left, y: 0, width: max(right - left, inset * 2), height: size.height)
+
         let isZoomedToEnd = (trimmingState == .leading && isZoomedIn == true)
+
         let thumbnailOffset = (isZoomedIn == true ? horizontalInset + inset + 6 : 0)
         let coverOffset = thumbnailOffset - horizontalInset
         let coverStartOffset = (isZoomedIn == false ? inset : 0)
 
-        shadowView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        
-        wrapperView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
+        let thumbnailRect = rect.insetBy(dx: horizontalInset - thumbnailOffset, dy: thumbView.edgeHeight)
+        thumbnailClipView.frame = rect
+        thumbnailWrapperView.frame = thumbnailRect
+        thumbnailTrackView.frame = CGRect(origin: .zero, size: CGSize(width: thumbnailRect.width - (isZoomedToEnd == false ? inset : 0), height: thumbnailRect.height))
+        thumbnailLeadingCoverView.frame = CGRect(x: coverStartOffset, y: 0, width: left + inset * 0.5 + coverOffset - coverStartOffset, height: thumbnailRect.height)
+        thumbnailTrailingCoverView.frame = CGRect(x: right - inset * 0.5 + coverOffset, y: 0, width: thumbnailRect.width - coverStartOffset - (right - inset * 0.5 + coverOffset), height: thumbnailRect.height)
 
-        thumbView.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(left)
-            make.top.equalToSuperview()
-            make.width.equalTo(max(right - left, inset * 2))
-            make.height.equalTo(size.height)
-        }
-
-        thumbnailClipView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-
-        thumbnailWrapperView.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(horizontalInset - thumbnailOffset)
-            make.right.equalToSuperview().offset(-(horizontalInset - thumbnailOffset))
-            make.top.equalToSuperview().offset(thumbView.edgeHeight)
-            make.bottom.equalToSuperview().offset(-thumbView.edgeHeight)
-        }
-
-        thumbnailTrackView.snp.makeConstraints { make in
-            make.left.equalToSuperview()
-            make.top.equalToSuperview()
-            make.width.equalTo(thumbnailWrapperView.snp.width).offset(-(isZoomedToEnd == false ? inset : 0))
-            make.height.equalTo(thumbnailWrapperView.snp.height)
-        }
-
-        thumbnailLeadingCoverView.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(coverStartOffset)
-            make.top.equalToSuperview()
-            make.width.equalTo(left + inset * 0.5 + coverOffset - coverStartOffset)
-            make.height.equalTo(thumbnailWrapperView.snp.height)
-        }
-
-        thumbnailTrailingCoverView.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(right - inset * 0.5 + coverOffset)
-            make.top.equalToSuperview()
-            make.width.equalTo(thumbnailWrapperView.snp.width).offset(-coverStartOffset - (right - inset * 0.5 + coverOffset))
-            make.height.equalTo(thumbnailWrapperView.snp.height)
-        }
-
-        leadingThumbRest.snp.makeConstraints { make in
-            make.left.equalToSuperview()
-            make.top.equalToSuperview()
-            make.width.equalTo(inset)
-            make.height.equalTo(thumbnailWrapperView.snp.height)
-        }
-
-        trailingThumbRest.snp.makeConstraints { make in
-            make.right.equalToSuperview()
-            make.top.equalToSuperview()
-            make.width.equalTo(inset)
-            make.height.equalTo(thumbnailWrapperView.snp.height)
-        }
+        leadingThumbRest.frame = CGRect(x: 0, y: 0, width: inset, height: thumbnailRect.height)
+        trailingThumbRest.frame = CGRect(x: thumbnailRect.width - inset, y: 0, width: inset, height: thumbnailRect.height)
 
         if progressIndicator.alpha > 0 {
             let progressWidth = CGFloat(4)
             let progressIndicatorOffset = locationForTime(progress)
             let progressLeft = min(max(thumbView.frame.minX + inset, progressIndicatorOffset - progressWidth * 0.5), thumbView.frame.maxX - inset - progressWidth)
-            progressIndicator.snp.makeConstraints { make in
-                make.left.equalToSuperview().offset(progressLeft)
-                make.top.equalTo(thumbnailWrapperView.snp.top)
-                make.width.equalTo(progressWidth)
-                make.height.equalTo(thumbnailWrapperView.snp.height)
-            }
+            progressIndicator.frame = CGRect(x: progressLeft, y: thumbnailRect.minY, width: progressWidth, height: thumbnailRect.height)
 
             let progressControlWidth = CGFloat(24)
+
             var progressControlLeft = max(thumbView.frame.minX + inset, progressLeft)
             var progressControlRight = progressLeft + progressControlWidth
             if progressControlRight > thumbView.frame.maxX - inset {
                 progressControlRight = thumbView.frame.maxX - inset
                 progressControlLeft = max(thumbView.frame.minX + inset, progressControlRight - progressControlWidth)
             }
-            progressIndicatorControl.snp.makeConstraints { make in
-                make.left.equalToSuperview().offset(progressControlLeft)
-                make.top.equalTo(thumbnailWrapperView.snp.top)
-                make.width.equalTo(progressControlRight - progressControlLeft)
-                make.height.equalTo(thumbnailWrapperView.snp.height)
-            }
+            progressIndicatorControl.frame = CGRect(x: progressControlLeft, y: thumbnailRect.minY, width: progressControlRight - progressControlLeft, height: thumbnailRect.height)
         }
 
-        await regenerateThumbnailsIfNeeded()
+        regenerateThumbnailsIfNeeded()
 
         for thumbnail in thumbnails {
             let position = locationForTime(thumbnail.time) - horizontalInset + thumbnailOffset
             let frame = CGRect(x: position, y: 0, width: thumbnailSize.width, height: thumbnailSize.height)
             if thumbnail.imageView.bounds.width == 0 {
                 UIView.performWithoutAnimation {
-                    thumbnail.imageView.snp.makeConstraints { make in
-                        make.left.equalToSuperview().offset(position)
-                        make.top.equalToSuperview()
-                        make.width.equalTo(thumbnailSize.width)
-                        make.height.equalTo(thumbnailSize.height)
-                    }
+                    thumbnail.imageView.frame = frame
                 }
             } else {
-                thumbnail.imageView.snp.makeConstraints { make in
-                    make.left.equalToSuperview().offset(position)
-                    make.top.equalToSuperview()
-                    make.width.equalTo(thumbnailSize.width)
-                    make.height.equalTo(thumbnailSize.height)
-                }
+                thumbnail.imageView.frame = frame
             }
         }
     }
-    
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -800,6 +745,8 @@ final class VideoTrimmer: UIControl {
         setup()
     }
 }
+
+// MARK: -
 
 fileprivate func SnapToDevicePixels(_ value: CGFloat, scale: CGFloat? = nil) -> CGFloat {
     let actualScale = scale ?? UIScreen.main.scale
@@ -832,4 +779,3 @@ fileprivate extension CGSize {
         return CGRect(origin: .zero, size: self).applying(transform).size
     }
 }
-

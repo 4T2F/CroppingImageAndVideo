@@ -54,11 +54,12 @@ class VideoTrimmerThumb: UIView {
         //        wrapperView.layer.shadowRadius = 2
         //        wrapperView.layer.shadowOpacity = 0.25
 
+        addSubview(wrapperView)
+
         wrapperView.addSubview(leadingView)
         wrapperView.addSubview(trailingView)
         wrapperView.addSubview(topView)
         wrapperView.addSubview(bottomView)
-        addSubview(wrapperView)
 
         wrapperView.addSubview(leadingGrabber)
         wrapperView.addSubview(trailingGrabber)
