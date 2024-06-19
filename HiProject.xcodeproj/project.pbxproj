@@ -12,6 +12,9 @@
 		41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */; };
 		41884B8F2C16EBDC0023D76B /* VideoTimeLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */; };
 		41884B912C16ED690023D76B /* HandleLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B902C16ED690023D76B /* HandleLayer.swift */; };
+		4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621A2C22BA3000C249DF /* VideoTrimmer.swift */; };
+		4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */; };
+		4191621F2C22CAF300C249DF /* VideoTrimViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621E2C22CAF300C249DF /* VideoTrimViewController.swift */; };
 		7307A4542C17301B007074AC /* TrimVideoControlViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7307A4532C17301B007074AC /* TrimVideoControlViewModel.swift */; };
 		732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109B2C12CC02004285E5 /* CroppingViewController.swift */; };
 		732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109D2C12DF3D004285E5 /* CropViewModel.swift */; };
@@ -51,6 +54,9 @@
 		41884B8C2C16E7A40023D76B /* VideoTimeLineGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineGenerator.swift; sourceTree = "<group>"; };
 		41884B8E2C16EBDC0023D76B /* VideoTimeLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimeLineView.swift; sourceTree = "<group>"; };
 		41884B902C16ED690023D76B /* HandleLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandleLayer.swift; sourceTree = "<group>"; };
+		4191621A2C22BA3000C249DF /* VideoTrimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmer.swift; sourceTree = "<group>"; };
+		4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmerThumb.swift; sourceTree = "<group>"; };
+		4191621E2C22CAF300C249DF /* VideoTrimViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimViewController.swift; sourceTree = "<group>"; };
 		7307A4532C17301B007074AC /* TrimVideoControlViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewModel.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
 		732A109D2C12DF3D004285E5 /* CropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CropViewModel.swift; sourceTree = "<group>"; };
@@ -104,6 +110,8 @@
 				7307A4522C172F03007074AC /* ViewModel */,
 				41884B862C16DB6F0023D76B /* View */,
 				41884B902C16ED690023D76B /* HandleLayer.swift */,
+				4191621A2C22BA3000C249DF /* VideoTrimmer.swift */,
+				4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */,
 			);
 			path = Video;
 			sourceTree = "<group>";
@@ -122,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */,
+				4191621E2C22CAF300C249DF /* VideoTrimViewController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -340,8 +349,10 @@
 				7353A0572BF264C3003A3578 /* AppDelegate.swift in Sources */,
 				41884B912C16ED690023D76B /* HandleLayer.swift in Sources */,
 				7381F3882C0EF803002AC710 /* PhotoCollectionViewCell.swift in Sources */,
+				4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */,
 				736355BC2C05B58300926CBB /* ViewValues.swift in Sources */,
 				732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */,
+				4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */,
 				736355CE2C05E61700926CBB /* CustomLineView.swift in Sources */,
 				41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */,
 				7381F37B2C0EDE60002AC710 /* SelectPhotoCollectionViewCell.swift in Sources */,
@@ -349,6 +360,7 @@
 				732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */,
 				7381F38A2C0F0227002AC710 /* AssetInfo.swift in Sources */,
 				7381F3812C0EE6AB002AC710 /* SignUpViewModel.swift in Sources */,
+				4191621F2C22CAF300C249DF /* VideoTrimViewController.swift in Sources */,
 				732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */,
 				73EC85182C07074A00ABE16A /* AlbumService.swift in Sources */,
 				41884B8D2C16E7A40023D76B /* VideoTimeLineGenerator.swift in Sources */,

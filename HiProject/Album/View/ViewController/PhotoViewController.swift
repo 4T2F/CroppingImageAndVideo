@@ -256,7 +256,7 @@ extension PhotoViewController: UICollectionViewDelegate {
 //                        asset: asset!,
 //                        trimPositions: (0.0, 1.0))
                     guard let asset = asset else { return }
-                    let controller = TrimVideoControlViewController(asset: asset)
+                    let controller = VideoTrimViewController(asset: asset)
                     
                     self.navigationController?.pushViewController(controller, animated: true)
                 }

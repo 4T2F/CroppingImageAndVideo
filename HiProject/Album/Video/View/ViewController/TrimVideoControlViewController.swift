@@ -162,16 +162,21 @@ final class TrimVideoControlViewController: UIViewController {
             endTime = CMTime(
                 seconds: duration.seconds * viewModel.trimPositions.1,
                 preferredTimescale: duration.timescale)
+            
+            
             let timeRange = CMTimeRange(start: startTime, end: endTime)
+            
+            print(timeRange)
             
             let videoTrackComposition = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
             let audioTrackComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-            
+                        
             try await videoTrackComposition?.insertTimeRange(
                 timeRange,
                 of: try asset.loadTracks(withMediaType: .video)[0],
                 at: .zero)
             
+            print(asset)
             if let audioTrack = try await asset.loadTracks(withMediaType: .audio).first {
                 try audioTrackComposition?.insertTimeRange(timeRange, of: audioTrack, at: .zero)
             } else {
