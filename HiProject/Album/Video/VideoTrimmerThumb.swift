@@ -9,7 +9,7 @@ import SnapKit
 
 import UIKit
 
-class VideoTrimmerThumb: UIView {
+final class VideoTrimmerThumb: UIView {
     var isActive = false
     
     var leadingChevronImageView = UIImageView(image: UIImage(systemName: "chevron.compact.left"))
@@ -61,6 +61,7 @@ class VideoTrimmerThumb: UIView {
 
         updateColor()
     }
+    
     private func updateColor() {
         let color = UIColor.systemYellow
         leadingView.backgroundColor = color

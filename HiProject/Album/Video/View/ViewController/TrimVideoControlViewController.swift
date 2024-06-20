@@ -13,14 +13,22 @@ import UIKit
 extension CMTime {
     var displayString: String {
         let offset = TimeInterval(seconds)
-
+        
+        guard !offset.isNaN else { return "11:11"}
+        
         let numberOfNanosecondsFloat = (offset - TimeInterval(Int(offset))) * 1000.0
         let nanoseconds = Int(numberOfNanosecondsFloat)
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .positional
         formatter.zeroFormattingBehavior = .pad
         formatter.allowedUnits = [.minute, .second]
-        return String(format: "%@.%02d", formatter.string(from: offset) ?? "00:00", nanoseconds)
+        
+//        return String(format: "%@.%02d", formatter.string(from: offset) ?? "00:00", nanoseconds)
+        
+        var formattedString = formatter.string(from: offset) ?? "00:00"
+        formattedString += String(format: ".%02d",
+                                  nanoseconds).prefix(3) // .을 포함 3개 -> 소수점 2자리까지
+        return formattedString
     }
 }
 
@@ -119,6 +127,7 @@ final class TrimVideoControlViewController: UIViewController {
     private func configUserInterface() {
         view.backgroundColor = .black
         view.addSubview(cancelButton)
+        
         playerController.player = AVPlayer()
         addChild(playerController)
         view.addSubview(playerController.view)
@@ -159,7 +168,6 @@ final class TrimVideoControlViewController: UIViewController {
             make.top.equalTo(playerController.view.snp.bottom).offset(16)
             make.centerX.equalToSuperview()
         }
-      
     }
     
     private func setAssets() {
@@ -169,7 +177,7 @@ final class TrimVideoControlViewController: UIViewController {
             do {
                 try await updatePlayerAsset()
             } catch {
-                print("player asset 업데이트 실패: \(error)")
+                print("setAssets : player asset 업데이트 실패: \(error)")
             }
         }
 
@@ -178,6 +186,7 @@ final class TrimVideoControlViewController: UIViewController {
             let finalTime = self.trimmer.trimmingState == .none ? CMTimeAdd(time, self.trimmer.selectedRange.start) : time
             self.trimmer.progress = finalTime
         }
+        
         updateLabels()
     }
    
@@ -193,9 +202,13 @@ final class TrimVideoControlViewController: UIViewController {
         guard let avasset = asset else { return }
         
         if trimmer.trimmingState == .none {
-            outputRange = trimmer.selectedRange
-        } else {
+//            outputRange = trimmer.selectedRange
             outputRange = try await avasset.fullRange()
+
+        } else {
+            outputRange = trimmer.selectedRange
+
+//            outputRange = try await avasset.fullRange()
         }
         
         let trimmedAsset = try await avasset.trimmedComposition(outputRange)
@@ -206,23 +219,23 @@ final class TrimVideoControlViewController: UIViewController {
     
     // MARK: - Input
     @objc private func didBeginTrimming(_ sender: VideoTrimmer) {
-          updateLabels()
-
-          wasPlaying = (player.timeControlStatus != .paused)
-          player.pause()
-
-          Task {
-              do {
-                  try await updatePlayerAsset()
-              } catch {
-                  print("player asset 업데이트 실패: \(error)")
-              }
-          }
-      }
+        updateLabels()
+        
+        wasPlaying = (player.timeControlStatus != .paused)
+        player.pause()
+        
+        Task {
+            do {
+                try await updatePlayerAsset()
+            } catch {
+                print("didBeginTrimming : player asset 업데이트 실패: \(error)")
+            }
+        }
+    }
 
     @objc private func didEndTrimming(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         if wasPlaying == true {
             player.play()
         }
@@ -231,7 +244,7 @@ final class TrimVideoControlViewController: UIViewController {
             do {
                 try await updatePlayerAsset()
             } catch {
-                print("player asset 업데이트 실패: \(error)")
+                print("didEndTrimming : player asset 업데이트 실패: \(error)")
             }
         }
     }
@@ -242,14 +255,14 @@ final class TrimVideoControlViewController: UIViewController {
 
     @objc private func didBeginScrubbing(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         wasPlaying = (player.timeControlStatus != .paused)
         player.pause()
     }
 
     @objc private func didEndScrubbing(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         if wasPlaying == true {
             player.play()
         }
@@ -257,7 +270,7 @@ final class TrimVideoControlViewController: UIViewController {
 
     @objc private func progressDidChanged(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
         player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
     }
