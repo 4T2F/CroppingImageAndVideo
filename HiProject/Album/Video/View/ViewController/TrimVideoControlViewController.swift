@@ -20,7 +20,11 @@ extension CMTime {
         formatter.unitsStyle = .positional
         formatter.zeroFormattingBehavior = .pad
         formatter.allowedUnits = [.minute, .second]
-        return String(format: "%@.%02d", formatter.string(from: offset) ?? "00:00", nanoseconds)
+        
+        var formattedString = formatter.string(from: offset) ?? "00:00"
+        formattedString += String(format: ".%02d",
+                                  nanoseconds).prefix(3) // .을 포함 3개 -> 소수점 2자리까지
+        return formattedString
     }
 }
 

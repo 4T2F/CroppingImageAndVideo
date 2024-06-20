@@ -10,7 +10,7 @@ import SnapKit
 import UIKit
 import AVFoundation
 
-class VideoTrimmer: UIControl {
+final class VideoTrimmer: UIControl {
 
     static let didBeginTrimming = UIControl.Event(rawValue:     0b00000001 << 24)
     static let selectedRangeChanged = UIControl.Event(rawValue: 0b00000010 << 24)
@@ -41,7 +41,7 @@ class VideoTrimmer: UIControl {
 
     var horizontalInset: CGFloat = 16 {
         didSet {
-            guard horizontalInset != oldValue else {return}
+            guard horizontalInset != oldValue else { return }
             setNeedsLayout()
         }
     }
@@ -91,7 +91,7 @@ class VideoTrimmer: UIControl {
     }
 
     func setProgressIndicatorMode(_ mode: ProgressIndicatorMode, animated: Bool) {
-        guard progressIndicatorMode != mode else {return}
+        guard progressIndicatorMode != mode else { return }
 
         if animated == true {
             UIView.animate(withDuration: 0.25, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction], animations: {
@@ -111,7 +111,7 @@ class VideoTrimmer: UIControl {
     }
 
     func setProgress(_ progress: CMTime, animated: Bool) {
-        guard CMTimeCompare(self.progress, progress) != 0 else {return}
+        guard CMTimeCompare(self.progress, progress) != 0 else { return }
 
         self.progress = progress
         if animated == true {
@@ -263,10 +263,10 @@ class VideoTrimmer: UIControl {
 
     private func regenerateThumbnailsIfNeeded() {
         let size = bounds.size
-        guard size.width > 0 && size.height > 0 else {return}
-        guard lastKnownViewSizeForThumbnailGeneration != size || CMTimeRangeEqual(lastKnownThumbnailRange, visibleRange) == false else {return}
-        guard let asset = asset else {return}
-        guard let track = asset.tracks(withMediaType: .video).first else {return}
+        guard size.width > 0 && size.height > 0 else { return }
+        guard lastKnownViewSizeForThumbnailGeneration != size || CMTimeRangeEqual(lastKnownThumbnailRange, visibleRange) == false else { return }
+        guard let asset = asset else { return }
+        guard let track = asset.tracks(withMediaType: .video).first else { return }
 
         lastKnownViewSizeForThumbnailGeneration = size
         lastKnownThumbnailRange = visibleRange
@@ -290,7 +290,7 @@ class VideoTrimmer: UIControl {
         // we add some extra thumbnails as padding
         for index in -3..<numberOfThumbnails + 6 {
             let time = CMTimeAdd(visibleRange.start, CMTime(seconds: thumbnailDuration * Double(index), preferredTimescale: asset.duration.timescale * 2))
-            guard CMTimeCompare(time, .zero) != -1 else {continue}
+            guard CMTimeCompare(time, .zero) != -1 else { continue }
             times.append(NSValue(time: time))
 
             let newThumbnail = Thumbnail(imageView: UIImageView(), time: time)
@@ -319,7 +319,7 @@ class VideoTrimmer: UIControl {
             DispatchQueue.main.async {
                 seenIndex += 1
 
-                guard let cgImage = cgImage else {return}
+                guard let cgImage = cgImage else { return }
                 let image = UIImage(cgImage: cgImage)
 
                 let imageView = newThumbnails[seenIndex - 1].imageView
@@ -359,9 +359,9 @@ class VideoTrimmer: UIControl {
 
     private func startZoomWaitTimer() {
         stopZoomWaitTimer()
-        guard isZoomedIn == false else {return}
+        guard isZoomedIn == false else { return }
         zoomWaitTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { [weak self] _ in
-            guard let self = self else {return}
+            guard let self = self else { return }
             self.stopZoomWaitTimer()
             self.zoomIfNeeded()
         })
@@ -379,7 +379,7 @@ class VideoTrimmer: UIControl {
     }
 
     private func zoomIfNeeded() {
-        guard isZoomedIn == false else {return}
+        guard isZoomedIn == false else { return }
 
         let size = bounds.size
         let inset = thumbView.chevronWidth + horizontalInset
