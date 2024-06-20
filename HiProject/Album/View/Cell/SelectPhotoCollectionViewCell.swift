@@ -38,7 +38,7 @@ final class SelectPhotoCollectionViewCell: UICollectionViewCell {
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         layout.minimumLineSpacing = 16
         layout.minimumInteritemSpacing = 16
-        layout.itemSize = CGSize(width: ViewValues.cellWidth, height: ViewValues.cellHeight)
+        layout.itemSize = CGSize(width: ViewValues.selectPhotoCellWidth, height: ViewValues.cellHeight)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.dataSource = self

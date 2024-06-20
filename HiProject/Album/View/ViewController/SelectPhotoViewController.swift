@@ -19,11 +19,11 @@ class SelectPhotoViewController: UIViewController {
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: ViewValues.width, height: ViewValues.cellHeight * 2 + 130)
+        layout.itemSize = CGSize(width: ViewValues.width, height: ViewValues.cellHeight + 130)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .white
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.isScrollEnabled = false
+        collectionView.isScrollEnabled = true
         collectionView.dataSource = self
         collectionView.register(SelectPhotoCollectionViewCell.self, forCellWithReuseIdentifier: SelectPhotoCollectionViewCell.reuseIdentifier)
        

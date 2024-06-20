@@ -39,9 +39,9 @@ struct ViewValues {
     // MARK: - CornerRadius
     static let defaultRadius: CGFloat = 20
     
-    
+    static let selectPhotoCellWidth = width * 0.69
     static let cellWidth = (width - 48) / 2
-    static let cellHeight = cellWidth * 1.17
+    static let cellHeight = selectPhotoCellWidth * 1.17
 }
 
 protocol Reusable { }
