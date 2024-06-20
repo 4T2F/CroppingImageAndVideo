@@ -7,17 +7,51 @@
 
 import SnapKit
 
-import AVFoundation
-import Combine
+import AVKit
 import UIKit
+
+extension CMTime {
+    var displayString: String {
+        let offset = TimeInterval(seconds)
+
+        let numberOfNanosecondsFloat = (offset - TimeInterval(Int(offset))) * 1000.0
+        let nanoseconds = Int(numberOfNanosecondsFloat)
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = .pad
+        formatter.allowedUnits = [.minute, .second]
+        return String(format: "%@.%02d", formatter.string(from: offset) ?? "00:00", nanoseconds)
+    }
+}
+
+extension AVAsset {
+    func fullRange() async throws -> CMTimeRange {
+        let duration = try await load(.duration)
+        return CMTimeRange(start: .zero, duration: duration)
+    }
+
+    func trimmedComposition(_ range: CMTimeRange) async throws -> AVAsset {
+        let fullRange = try await fullRange()
+        guard CMTimeRangeEqual(fullRange, range) == false else { return self }
+
+        let composition = AVMutableComposition()
+        try await composition.insertTimeRange(range, of: self, at: .zero)
+
+        let videoTracks = try await loadTracks(withMediaType: .video)
+        if let videoTrack = videoTracks.first {
+            let preferredTransform = try await videoTrack.load(.preferredTransform)
+            composition.tracks.forEach { $0.preferredTransform = preferredTransform }
+        }
+        return composition
+    }
+}
 
 final class TrimVideoControlViewController: UIViewController {
     // MARK: - Public properties
-    var viewModel = TrimVideoControlViewModel()
-    var timeObserver: Any?
-    var startTime = CMTime()
-    var endTime = CMTime()
-    
+    let playerController = AVPlayerViewController()
+    var trimmer: VideoTrimmer!
+   
+
     // MARK: - Private properties
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
@@ -27,41 +61,46 @@ final class TrimVideoControlViewController: UIViewController {
         return button
     }()
     
-    private lazy var videoBackgroundView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .black
-        view.layer.addSublayer(playerLayer)
-        return view
-    }()
-    
-    private lazy var playerLayer: AVPlayerLayer = {
-        let playerLayer = AVPlayerLayer()
-        let size = CGSize(width: ViewValues.width, height: ViewValues.height / 2)
-        playerLayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-        playerLayer.videoGravity = .resizeAspect
-        return playerLayer
-    }()
-    
-    private lazy var playTimeLabel: UILabel = {
+    private lazy var leadingTrimLabel: UILabel = {
         let label = UILabel()
-        label.textAlignment = .center
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .white
-        label.font = .customFont(forTextStyle: .footnote, weight: .bold)
+        label.textAlignment = .left
         return label
     }()
     
-    private lazy var trimmingControlView: TrimmingControlView = TrimmingControlView(viewModel: viewModel)
-    private var cancellables = Set<AnyCancellable>()
-
-    private let asset: AVAsset
-    private let generator = VideoTimelineGenerator()
+    private lazy var slash: UILabel = {
+        let label = UILabel()
+        label.text = "/"
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
+        label.textColor = .white
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private lazy var trailingTrimLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
+        label.textColor = .white
+        label.textAlignment = .right
+        return label
+    }()
+    
+    private lazy var trimmingStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [leadingTrimLabel, slash, trailingTrimLabel])
+        stackView.alignment = .fill
+        stackView.spacing = UIStackView.spacingUseSystem
+        return stackView
+    }()
+    private var wasPlaying = false
+    private var player: AVPlayer! {playerController.player}
+    private let asset: AVAsset?
     
     // MARK: - Life Cycle
     init(
         asset: AVAsset
     ) {
         self.asset = asset
-        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -73,25 +112,28 @@ final class TrimVideoControlViewController: UIViewController {
         super.viewDidLoad()
         configUserInterface()
         configLayout()
-        setButtonActions()
+        setAssets()
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        Task {
-            await setPlayer()
-            await setTrimTrack()
-            setupBindings()
-        }
-    }
-    
+
     // MARK: - Helpers
     private func configUserInterface() {
         view.backgroundColor = .black
         view.addSubview(cancelButton)
-        view.addSubview(videoBackgroundView)
-        view.addSubview(trimmingControlView)
-        view.addSubview(playTimeLabel)
+        playerController.player = AVPlayer()
+        addChild(playerController)
+        view.addSubview(playerController.view)
+
+        trimmer = VideoTrimmer()
+        trimmer.minimumDuration = CMTime(seconds: 1, preferredTimescale: 600)
+        trimmer.addTarget(self, action: #selector(didBeginTrimming(_:)), for: VideoTrimmer.didBeginTrimming)
+        trimmer.addTarget(self, action: #selector(didEndTrimming(_:)), for: VideoTrimmer.didEndTrimming)
+        trimmer.addTarget(self, action: #selector(selectedRangeDidChanged(_:)), for: VideoTrimmer.selectedRangeChanged)
+        trimmer.addTarget(self, action: #selector(didBeginScrubbing(_:)), for: VideoTrimmer.didBeginScrubbing)
+        trimmer.addTarget(self, action: #selector(didEndScrubbing(_:)), for: VideoTrimmer.didEndScrubbing)
+        trimmer.addTarget(self, action: #selector(progressDidChanged(_:)), for: VideoTrimmer.progressChanged)
+        view.addSubview(trimmer)
+        view.addSubview(trimmingStackView)
+        
     }
     
     private func configLayout() {
@@ -101,178 +143,131 @@ final class TrimVideoControlViewController: UIViewController {
             make.width.height.equalTo(24)
         }
         
-        videoBackgroundView.snp.makeConstraints { make in
+        playerController.view.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
-            make.top.equalTo(self.cancelButton.snp.bottom).offset(50)
+            make.centerY.equalToSuperview()
+            make.height.equalTo(view.safeAreaLayoutGuide.snp.width)
         }
         
-        trimmingControlView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-16)
-            make.bottom.equalToSuperview().offset(-80)
-            make.height.equalTo(60)
+        trimmer.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-70)
+            make.height.equalTo(50)
         }
         
-        playTimeLabel.snp.makeConstraints { make in
+        trimmingStackView.snp.makeConstraints { make in
+            make.top.equalTo(playerController.view.snp.bottom).offset(16)
             make.centerX.equalToSuperview()
-            make.bottom.equalTo(self.trimmingControlView.snp.top).offset(-10)
-            make.width.equalTo(150)
         }
+      
     }
     
-    private func setButtonActions() {
+    private func setAssets() {
+        trimmer.asset = asset
         
-    }
-    
-    private func setTrimTrack() async {
-        do {
-            guard let track = try await asset.loadTracks(withMediaType: .video).first else { return }
-            let assetSize = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
-            let ratio = abs(assetSize.width) / abs(assetSize.height)
-            let bounds = trimmingControlView.bounds
-            let frameWidth = bounds.height * ratio / 2
-            let count = Int((bounds.width - 14) / frameWidth * 2) + 1
-            
-            await generator.videoTimeline(for: asset, in: trimmingControlView.bounds, numberOfFrames: count)
-                .replaceError(with: [])
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] images in
-                    guard let self = self else { return }
-                    self.updateVideoTimeline(with: images, assetAspectRatio: ratio)
-                }
-                .store(in: &cancellables)
-        } catch let error {
-            print("trimTrack Error: \(error)")
-        }
-    }
-    
-    private func setPlayer() async {
-        let composition = AVMutableComposition()
-        var interval = CMTime()
-        
-        do {
-            let duration = try await asset.load(.duration)
-            
-            interval = CMTime(seconds: 0.1, preferredTimescale: duration.timescale)
-            
-            startTime = CMTime(
-                seconds: duration.seconds * viewModel.trimPositions.0,
-                preferredTimescale: duration.timescale)
-            
-            endTime = CMTime(
-                seconds: duration.seconds * viewModel.trimPositions.1,
-                preferredTimescale: duration.timescale)
-            
-            
-            let timeRange = CMTimeRange(start: startTime, end: endTime)
-            
-            print(timeRange)
-            
-            let videoTrackComposition = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
-            let audioTrackComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-                        
-            try await videoTrackComposition?.insertTimeRange(
-                timeRange,
-                of: try asset.loadTracks(withMediaType: .video)[0],
-                at: .zero)
-            
-            print(asset)
-            if let audioTrack = try await asset.loadTracks(withMediaType: .audio).first {
-                try audioTrackComposition?.insertTimeRange(timeRange, of: audioTrack, at: .zero)
-            } else {
-                audioTrackComposition?.insertEmptyTimeRange(CMTimeRangeMake(start: .zero, duration: duration))
-            }
-            
-            playTimeLabel.text = self.viewModel.fomattingDouble(time: startTime.seconds) + " / " + self.viewModel.fomattingDouble(time: endTime.seconds)
-        } catch let error {
-            print("에러: \(error)")
-        }
-        
-        if playerLayer.player == nil {
-            let playerItem = AVPlayerItem(asset: composition)
-            let player = AVPlayer(playerItem: playerItem)
-            playerLayer.player = player
-            // 메인 스레드에서 플레이어 재생 시작
-            DispatchQueue.main.async { [weak self] in
-                self?.playerLayer.player?.play()
-            }
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                self?.playerLayer.player?.seek(to: self?.startTime ?? CMTime.zero) {_ in
-                    self?.playerLayer.player?.play()
-                }
+        Task {
+            do {
+                try await updatePlayerAsset()
+            } catch {
+                print("player asset 업데이트 실패: \(error)")
             }
         }
 
-        DispatchQueue.main.async { [weak self] in
-            self?.timeObserver = self?.playerLayer.player?.addPeriodicTimeObserver(forInterval: interval, queue: DispatchQueue.main) { time in
-                Task {  @MainActor in
-                    self?.observeTime(time: time)
-                }
-            }
-            
+        playerController.player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let finalTime = self.trimmer.trimmingState == .none ? CMTimeAdd(time, self.trimmer.selectedRange.start) : time
+            self.trimmer.progress = finalTime
         }
+        updateLabels()
+    }
+   
+    // MARK: - Helpers
+    private func updateLabels() {
+        leadingTrimLabel.text = trimmer.selectedRange.start.displayString
+        trailingTrimLabel.text = trimmer.selectedRange.end.displayString
+    }
+    
+    func updatePlayerAsset() async throws {
+        let outputRange: CMTimeRange
+        
+        guard let avasset = asset else { return }
+        
+        if trimmer.trimmingState == .none {
+            outputRange = trimmer.selectedRange
+        } else {
+            outputRange = try await avasset.fullRange()
+        }
+        
+        let trimmedAsset = try await avasset.trimmedComposition(outputRange)
+        if trimmedAsset != player.currentItem?.asset {
+            player.replaceCurrentItem(with: AVPlayerItem(asset: trimmedAsset))
+        }
+    }
+    
+    // MARK: - Input
+    @objc private func didBeginTrimming(_ sender: VideoTrimmer) {
+          updateLabels()
+
+          wasPlaying = (player.timeControlStatus != .paused)
+          player.pause()
+
+          Task {
+              do {
+                  try await updatePlayerAsset()
+              } catch {
+                  print("player asset 업데이트 실패: \(error)")
+              }
+          }
+      }
+
+    @objc private func didEndTrimming(_ sender: VideoTrimmer) {
+        updateLabels()
+
+        if wasPlaying == true {
+            player.play()
+        }
+
+        Task {
+            do {
+                try await updatePlayerAsset()
+            } catch {
+                print("player asset 업데이트 실패: \(error)")
+            }
+        }
+    }
+
+    @objc private func selectedRangeDidChanged(_ sender: VideoTrimmer) {
+        updateLabels()
+    }
+
+    @objc private func didBeginScrubbing(_ sender: VideoTrimmer) {
+        updateLabels()
+
+        wasPlaying = (player.timeControlStatus != .paused)
+        player.pause()
+    }
+
+    @objc private func didEndScrubbing(_ sender: VideoTrimmer) {
+        updateLabels()
+
+        if wasPlaying == true {
+            player.play()
+        }
+    }
+
+    @objc private func progressDidChanged(_ sender: VideoTrimmer) {
+        updateLabels()
+
+        let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
+        player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
     // MARK: - Actions
     @objc func didSelectCancelButton(_ sender: UIButton) {
-        self.playerLayer.player = nil
-        if let timeObserver = timeObserver {
-            self.playerLayer.player?.removeTimeObserver(timeObserver)
-            self.timeObserver = nil
-        }
+       
         self.navigationController?.popViewController(animated: false)
     }
     
-    @MainActor
-    func observeTime(time: CMTime) {
-        viewModel.playheadProgress = time
-    }
 }
 
 // MARK: - Extensions here
-
-// MARK: Bindings
-fileprivate extension TrimVideoControlViewController {
-    func setupBindings() {
-        viewModel.$trimPositions
-            .dropFirst(1)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.setPlayer()
-                }
-            }
-            .store(in: &cancellables)
-        
-        viewModel.$playheadProgress
-            .sink { [weak self] time in
-                if self?.endTime.seconds ?? 1 <= time.seconds {
-                    self?.playerLayer.player?.pause()
-                } else {
-                    self?.playTimeLabel.text = (self?.viewModel.fomattingDouble(time: time.seconds) ?? "00:00") + " / " + (self?.viewModel.fomattingDouble(time: self?.endTime.seconds ?? 0) ?? "00:00")
-                    
-//                    print("타임 \(time.seconds) startTime \(self?.startTime.seconds ?? 0) endTime \(self?.endTime.seconds ?? 1)")
-    
-                    self?.trimmingControlView.internalPlayHeadProgressValue = (time.seconds - (self?.startTime.seconds ?? 0)) / ((self?.endTime.seconds ?? 1) - (self?.startTime.seconds ?? 0))
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    func updateVideoTimeline(with images: [CGImage], assetAspectRatio: CGFloat) {
-        guard !trimmingControlView.isConfigured else { return }
-        guard !images.isEmpty else { return }
-        
-        trimmingControlView.configure(with: images, assetAspectRatio: assetAspectRatio)
-    }
-}
-
-
-extension Publisher where Self.Failure == Never {
-    func assign<Root: AnyObject>(
-        to keyPath: WritableKeyPath<Root, Self.Output>, weakly object: Root) -> AnyCancellable {
-            sink { [weak object] (output) in
-                object?[keyPath: keyPath] = output
-            }
-        }
-}

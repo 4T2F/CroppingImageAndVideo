@@ -49,11 +49,6 @@ class VideoTrimmerThumb: UIView {
         leadingView.addSubview(leadingChevronImageView)
         trailingView.addSubview(trailingChevronView)
 
-        //        wrapperView.layer.shadowColor = UIColor.black.cgColor
-        //        wrapperView.layer.shadowOffset = .zero
-        //        wrapperView.layer.shadowRadius = 2
-        //        wrapperView.layer.shadowOpacity = 0.25
-
         addSubview(wrapperView)
 
         wrapperView.addSubview(leadingView)
