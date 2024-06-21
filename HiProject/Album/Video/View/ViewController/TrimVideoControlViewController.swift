@@ -217,6 +217,7 @@ final class TrimVideoControlViewController: UIViewController {
     }
     
     private func updatePlayerAsset() {
+        
         guard let asset = asset else { return }
         let outputRange = trimmer.trimmingState == .none ? trimmer.selectedRange : asset.fullRange
         let trimmedAsset = asset.trimmedComposition(outputRange)
@@ -236,6 +237,16 @@ final class TrimVideoControlViewController: UIViewController {
                     }
                 }
             }
+        } else {
+            trimmer.progress = .zero
+            
+            let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.playerLayer.player?.seek(to: time) { _ in
+                    self?.playerLayer.player?.play()
+                }
+            }
         }
     }
     
@@ -248,7 +259,6 @@ final class TrimVideoControlViewController: UIViewController {
     
     // MARK: - Action
     @objc private func didBeginTrimming(_ sender: VideoTrimmer) {
-        playerLayer.player?.pause()
         updateTrimLabel()
         updatePlayerAsset()
     }
@@ -259,6 +269,7 @@ final class TrimVideoControlViewController: UIViewController {
     }
     
     @objc private func selectedRangeDidChanged(_ sender: VideoTrimmer) {
+        playerLayer.player?.pause()
         updateTrimLabel()
     }
     
