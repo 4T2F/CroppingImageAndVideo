@@ -99,6 +99,6 @@ final class VideoTrimmerThumb: UIView {
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setup()
+        //setup()
     }
 }
