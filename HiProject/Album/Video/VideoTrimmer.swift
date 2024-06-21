@@ -11,7 +11,6 @@ import UIKit
 import AVFoundation
 
 final class VideoTrimmer: UIControl {
-
     static let didBeginTrimming = UIControl.Event(rawValue:     0b00000001 << 24)
     static let selectedRangeChanged = UIControl.Event(rawValue: 0b00000010 << 24)
     static let didEndTrimming = UIControl.Event(rawValue:       0b00000100 << 24)

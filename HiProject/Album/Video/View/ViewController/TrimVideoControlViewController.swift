@@ -13,7 +13,7 @@ import UIKit
 extension CMTime {
     var displayString: String {
         let offset = TimeInterval(seconds)
-
+        
         let numberOfNanosecondsFloat = (offset - TimeInterval(Int(offset))) * 1000.0
         let nanoseconds = Int(numberOfNanosecondsFloat)
         let formatter = DateComponentsFormatter()
@@ -29,22 +29,17 @@ extension CMTime {
 }
 
 extension AVAsset {
-    func fullRange() async throws -> CMTimeRange {
-        let duration = try await load(.duration)
+    var fullRange: CMTimeRange {
         return CMTimeRange(start: .zero, duration: duration)
     }
-
-    func trimmedComposition(_ range: CMTimeRange) async throws -> AVAsset {
-        let fullRange = try await fullRange()
-        guard CMTimeRangeEqual(fullRange, range) == false else { return self }
-
+    func trimmedComposition(_ range: CMTimeRange) -> AVAsset {
+        guard CMTimeRangeEqual(fullRange, range) == false else {return self}
+        
         let composition = AVMutableComposition()
-        try await composition.insertTimeRange(range, of: self, at: .zero)
-
-        let videoTracks = try await loadTracks(withMediaType: .video)
-        if let videoTrack = videoTracks.first {
-            let preferredTransform = try await videoTrack.load(.preferredTransform)
-            composition.tracks.forEach { $0.preferredTransform = preferredTransform }
+        try? composition.insertTimeRange(range, of: self, at: .zero)
+        
+        if let videoTrack = tracks(withMediaType: .video).first {
+            composition.tracks.forEach {$0.preferredTransform = videoTrack.preferredTransform}
         }
         return composition
     }
@@ -53,9 +48,8 @@ extension AVAsset {
 final class TrimVideoControlViewController: UIViewController {
     // MARK: - Public properties
     let playerController = AVPlayerViewController()
-    var trimmer: VideoTrimmer!
-   
-
+    var trimmer = VideoTrimmer()
+    
     // MARK: - Private properties
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
@@ -118,7 +112,7 @@ final class TrimVideoControlViewController: UIViewController {
         configLayout()
         setAssets()
     }
-
+    
     // MARK: - Helpers
     private func configUserInterface() {
         view.backgroundColor = .black
@@ -126,8 +120,7 @@ final class TrimVideoControlViewController: UIViewController {
         playerController.player = AVPlayer()
         addChild(playerController)
         view.addSubview(playerController.view)
-
-        trimmer = VideoTrimmer()
+        
         trimmer.minimumDuration = CMTime(seconds: 1, preferredTimescale: 600)
         trimmer.addTarget(self, action: #selector(didBeginTrimming(_:)), for: VideoTrimmer.didBeginTrimming)
         trimmer.addTarget(self, action: #selector(didEndTrimming(_:)), for: VideoTrimmer.didEndTrimming)
@@ -163,20 +156,14 @@ final class TrimVideoControlViewController: UIViewController {
             make.top.equalTo(playerController.view.snp.bottom).offset(16)
             make.centerX.equalToSuperview()
         }
-      
+        
     }
     
     private func setAssets() {
         trimmer.asset = asset
         
-        Task {
-            do {
-                try await updatePlayerAsset()
-            } catch {
-                print("player asset 업데이트 실패: \(error)")
-            }
-        }
-
+        updatePlayerAsset()
+        
         playerController.player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
             guard let self = self else { return }
             let finalTime = self.trimmer.trimmingState == .none ? CMTimeAdd(time, self.trimmer.selectedRange.start) : time
@@ -184,91 +171,70 @@ final class TrimVideoControlViewController: UIViewController {
         }
         updateLabels()
     }
-   
+    
     // MARK: - Helpers
     private func updateLabels() {
         leadingTrimLabel.text = trimmer.selectedRange.start.displayString
         trailingTrimLabel.text = trimmer.selectedRange.end.displayString
     }
     
-    func updatePlayerAsset() async throws {
-        let outputRange: CMTimeRange
-        
-        guard let avasset = asset else { return }
-        
-        if trimmer.trimmingState == .none {
-            outputRange = trimmer.selectedRange
-        } else {
-            outputRange = try await avasset.fullRange()
-        }
-        
-        let trimmedAsset = try await avasset.trimmedComposition(outputRange)
+    private func updatePlayerAsset() {
+        guard let asset = asset else { return }
+        let outputRange = trimmer.trimmingState == .none ? trimmer.selectedRange : asset.fullRange
+        let trimmedAsset = asset.trimmedComposition(outputRange)
         if trimmedAsset != player.currentItem?.asset {
             player.replaceCurrentItem(with: AVPlayerItem(asset: trimmedAsset))
         }
     }
-    
     // MARK: - Input
     @objc private func didBeginTrimming(_ sender: VideoTrimmer) {
-          updateLabels()
-
-          wasPlaying = (player.timeControlStatus != .paused)
-          player.pause()
-
-          Task {
-              do {
-                  try await updatePlayerAsset()
-              } catch {
-                  print("player asset 업데이트 실패: \(error)")
-              }
-          }
-      }
-
+        updateLabels()
+        
+        wasPlaying = (player.timeControlStatus != .paused)
+        player.pause()
+        
+        updatePlayerAsset()
+    }
+    
     @objc private func didEndTrimming(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         if wasPlaying == true {
             player.play()
         }
-
-        Task {
-            do {
-                try await updatePlayerAsset()
-            } catch {
-                print("player asset 업데이트 실패: \(error)")
-            }
-        }
+        
+        updatePlayerAsset()
     }
-
+    
     @objc private func selectedRangeDidChanged(_ sender: VideoTrimmer) {
         updateLabels()
     }
-
+    
     @objc private func didBeginScrubbing(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         wasPlaying = (player.timeControlStatus != .paused)
         player.pause()
     }
-
+    
     @objc private func didEndScrubbing(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         if wasPlaying == true {
             player.play()
         }
     }
-
+    
     @objc private func progressDidChanged(_ sender: VideoTrimmer) {
         updateLabels()
-
+        
         let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
         player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
     // MARK: - Actions
     @objc func didSelectCancelButton(_ sender: UIButton) {
-       
+        
         self.navigationController?.popViewController(animated: false)
     }
     
