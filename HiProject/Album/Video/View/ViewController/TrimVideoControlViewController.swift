@@ -183,13 +183,20 @@ final class TrimVideoControlViewController: UIViewController {
         updatePlayerAsset()
         updateTrimLabel()
         
-        self.timeObserverToken = playerLayer.player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
+        // 동영상의 프레임 속도
+        let nominalFrameRate = asset?.tracks(withMediaType: .video).first?.nominalFrameRate ?? 30
+        let interval = CMTime(seconds: 1 / Double(nominalFrameRate), preferredTimescale: 600)
+        
+        self.timeObserverToken = playerLayer.player?.addPeriodicTimeObserver(
+            forInterval: interval,
+            queue: .main
+        ) { [weak self] _ in
             guard let self = self else { return }
-            let finalTime = self.trimmer.trimmingState == .none ? CMTimeAdd(time, self.trimmer.selectedRange.start) : time
-            self.trimmer.progress = finalTime
             
-            if finalTime <= self.trimmer.selectedRange.end {
-                leadingTrimLabel.text = finalTime.displayString
+            self.trimmer.progress = CMTimeAdd(self.trimmer.progress, interval)
+            
+            if self.trimmer.progress <= self.trimmer.selectedRange.end {
+                leadingTrimLabel.text = self.trimmer.progress.displayString
             } else {
                 playerLayer.player?.pause()
                 leadingTrimLabel.text = self.trimmer.selectedRange.end.displayString
@@ -217,35 +224,37 @@ final class TrimVideoControlViewController: UIViewController {
     }
     
     private func updatePlayerAsset() {
-        
         guard let asset = asset else { return }
+        
         let outputRange = trimmer.trimmingState == .none ? trimmer.selectedRange : asset.fullRange
         let trimmedAsset = asset.trimmedComposition(outputRange)
+        let time = trimmer.selectedRange.start
+        trimmer.progress = time
         
         if trimmedAsset != playerLayer.player?.currentItem?.asset {
             if playerLayer.player == nil {
                 playerLayer.player = AVPlayer(playerItem: AVPlayerItem(asset: trimmedAsset))
                 playerLayer.player?.play()
             } else {
-                trimmer.progress = .zero
-                
-                let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
-                
                 DispatchQueue.main.async { [weak self] in
-                    self?.playerLayer.player?.seek(to: time) { _ in
-                        self?.playerLayer.player?.play()
-                    }
+                    self?.playerLayer.player?.seek(
+                        to: time,
+                        toleranceBefore: .zero,
+                        toleranceAfter: .zero,
+                        completionHandler: { _ in
+                            self?.playerLayer.player?.play()
+                        })
                 }
             }
         } else {
-            trimmer.progress = .zero
-            
-            let time = CMTimeSubtract(trimmer.progress, trimmer.selectedRange.start)
-            
             DispatchQueue.main.async { [weak self] in
-                self?.playerLayer.player?.seek(to: time) { _ in
-                    self?.playerLayer.player?.play()
-                }
+                self?.playerLayer.player?.seek(
+                    to: time,
+                    toleranceBefore: .zero,
+                    toleranceAfter: .zero,
+                    completionHandler: { _ in
+                        self?.playerLayer.player?.play()
+                    })
             }
         }
     }
