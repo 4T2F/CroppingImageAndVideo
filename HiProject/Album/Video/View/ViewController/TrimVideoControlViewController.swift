@@ -195,18 +195,24 @@ final class TrimVideoControlViewController: UIViewController {
             
             self.trimmer.progress = CMTimeAdd(self.trimmer.progress, interval)
             
-            if self.trimmer.progress <= self.trimmer.selectedRange.end {
-                leadingTrimLabel.text = self.trimmer.progress.displayString
-            } else {
-                playerLayer.player?.pause()
-                leadingTrimLabel.text = self.trimmer.selectedRange.end.displayString
+            if let player = playerLayer.player, player.rate != 0 {
+                if self.trimmer.progress <= self.trimmer.selectedRange.end {
+                    leadingTrimLabel.text = self.trimmer.progress.displayString
+                } else {
+                    player.pause()
+                    leadingTrimLabel.text = self.trimmer.selectedRange.end.displayString
+                }
             }
         }
     }
     
     private func updateTrimLabel() {
         leadingTrimLabel.text = trimmer.selectedRange.start.displayString
+        
         trailingTrimLabel.text = trimmer.selectedRange.end.displayString
+   
+        playerLayer.player?.seek(to: trimmer.selectedRange.start, toleranceBefore: .zero, toleranceAfter: .zero)
+        
     }
     
     private func updateScrubbingLabel(state: String) {
@@ -280,6 +286,7 @@ final class TrimVideoControlViewController: UIViewController {
     @objc private func selectedRangeDidChanged(_ sender: VideoTrimmer) {
         playerLayer.player?.pause()
         updateTrimLabel()
+       
     }
     
     @objc private func didBeginScrubbing(_ sender: VideoTrimmer) {

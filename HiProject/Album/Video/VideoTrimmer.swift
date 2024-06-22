@@ -229,10 +229,10 @@ final class VideoTrimmer: UIControl {
         trailingThumbRest.layer.maskedCorners = [.layerMaxXMaxYCorner, .layerMaxXMinYCorner]
         trailingThumbRest.layer.cornerCurve = .continuous
         
-        shadowView.layer.shadowColor = UIColor.black.cgColor
+        shadowView.layer.shadowColor = UIColor.white.cgColor
         shadowView.layer.shadowOffset = .zero
         shadowView.layer.shadowRadius = 2
-        shadowView.layer.shadowOpacity = 0.25
+        shadowView.layer.shadowOpacity = 0.5
         
         leadingGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(leadingGrabberPanned(_:)))
         leadingGestureRecognizer.allowableMovement = CGFloat.greatestFiniteMagnitude
@@ -489,10 +489,6 @@ final class VideoTrimmer: UIControl {
                 impactFeedbackGenerator?.impactOccurred()
             }
             didClampWhilePanning = didClamp
-            
-
-            didClampWhilePanning = didClamp
-            
             progress = time
 
             setNeedsLayout()
@@ -525,7 +521,6 @@ final class VideoTrimmer: UIControl {
             break
         }
     }
-    
     
     @objc private func leadingGrabberPanned(_ sender: UILongPressGestureRecognizer) {
         switch sender.state {
