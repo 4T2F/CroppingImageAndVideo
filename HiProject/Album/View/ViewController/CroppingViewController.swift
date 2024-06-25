@@ -15,7 +15,6 @@ final class CroppingViewController: UIViewController {
     let selectImage: UIImage
     
     var cropViewTopAnchor: Constraint?
-    
     var cropViewLeadingAnchor: Constraint?
     
     var initialCenter = CGPoint()
@@ -133,7 +132,7 @@ final class CroppingViewController: UIViewController {
     private func configLayout() {
         squareView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-        
+            
             if selectImage.size.width < ViewValues.width {
                 make.width.equalTo(selectImage.size.width)
             } else {
@@ -161,7 +160,7 @@ final class CroppingViewController: UIViewController {
         
         photoImageView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-        
+            
             if selectImage.size.width < ViewValues.width {
                 make.width.equalTo(selectImage.size.width)
             } else {
@@ -174,7 +173,7 @@ final class CroppingViewController: UIViewController {
                 make.height.equalToSuperview()
             }
         }
-
+        
         cropView.snp.makeConstraints { make in
             if selectImage.size.height < 500 {
                 make.width.equalTo(selectImage.size.height / 1.16)
@@ -186,7 +185,7 @@ final class CroppingViewController: UIViewController {
                 make.height.equalTo(500)
                 self.cropViewTopAnchor = make.top.equalToSuperview().offset(selectImage.size.height / 2 - 250).constraint
                 self.cropViewLeadingAnchor = make.leading.equalToSuperview().constraint
-
+                
             }
         }
         
@@ -220,14 +219,9 @@ final class CroppingViewController: UIViewController {
         
         if gesture.state == .began {
             cropView.linesChangeState(isCropping: true)
-            print(0)
-
         } else if gesture.state == .changed {
-            // photoImageView의 변환을 업데이트
-            print(1)
             let newScale = photoImageView.transform.scaledBy(x: gesture.scale, y: gesture.scale)
             
-            // 새로운 스케일 크기 확인
             let newWidth = photoImageView.frame.size.width * gesture.scale
             let newHeight = photoImageView.frame.size.height * gesture.scale
             
@@ -237,9 +231,7 @@ final class CroppingViewController: UIViewController {
             }
             
             gesture.scale = 1.0
-            
-        } else {
-            print(2)
+        } else if gesture.state == .ended {
             cropView.linesChangeState(isCropping: false)
         }
     }
@@ -249,7 +241,19 @@ final class CroppingViewController: UIViewController {
     }
     
     @objc func didSelectCheckButton(_ sender: UIButton) {
-        let image = cropImage()
+        self.view.layoutIfNeeded()
+        
+        // 확대된 이미지 반환
+        guard let transformedImage = selectImage.transformed(by: photoImageView.transform) else { return }
+        
+        let cropRect = CGRect(x: cropView.frame.origin.x + abs(photoImageView.frame.origin.x),
+                              y: cropView.frame.origin.y + abs(photoImageView.frame.origin.y),
+                              width: cropView.frame.size.width,
+                              height: cropView.frame.size.height)
+        
+        // 이미지 크롭
+        guard let image = transformedImage.cropped(to: cropRect) else { return }
+        
         self.navigationController?.pushViewController(SelectCategoryPhotoViewController(selectImage: image), animated: true)
     }
     
@@ -289,7 +293,7 @@ final class CroppingViewController: UIViewController {
                     y: initialCenter.y + translation.y)
                 
                 self.cropViewTopAnchor?.update(offset: cropView.frame.origin.y)
-
+                
                 // 경계 체크
                 if cropView.frame.origin.y < 0 {
                     self.cropViewTopAnchor?.update(offset: 0)
@@ -301,7 +305,7 @@ final class CroppingViewController: UIViewController {
                 
                 gestureRecognizer.setTranslation(CGPoint.zero, in: cropView)
             }
-
+            
         } else if gestureRecognizer.state == .cancelled {
             cropView.linesChangeState(isCropping: false)
         } else if gestureRecognizer.state == .ended {
@@ -321,11 +325,23 @@ final class CroppingViewController: UIViewController {
 }
 
 extension UIImage {
-    func scaled(to newSize: CGSize) -> UIImage? {
-        // 새 크기의 비율로 변환
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        return renderer.image { _ in
-            self.draw(in: CGRect(origin: .zero, size: newSize))
-        }
+    func transformed(by transform: CGAffineTransform) -> UIImage? {
+        let transformedRect = CGRect(origin: .zero, size: self.size).applying(transform)
+        let newSize = transformedRect.size
+        
+        UIGraphicsBeginImageContextWithOptions(newSize, false, self.scale)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        
+        context.concatenate(transform)
+        self.draw(at: CGPoint(x: 0, y: 0))
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage
+    }
+    
+    func cropped(to rect: CGRect) -> UIImage? {
+        guard let cgImage = self.cgImage?.cropping(to: rect) else { return nil }
+        return UIImage(cgImage: cgImage, scale: self.scale, orientation: self.imageOrientation)
     }
 }

@@ -31,7 +31,7 @@ final class SelectCategoryPhotoViewController: UIViewController {
     private lazy var photoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = selectImage
-        imageView.contentMode = .scaleToFill
+        imageView.contentMode = .scaleAspectFill
         imageView.isUserInteractionEnabled = true
         return imageView
     }()
@@ -158,11 +158,11 @@ final class SelectCategoryPhotoViewController: UIViewController {
     // MARK: - Actions
     
     @objc func didSelectCancelButton(_ sender: UIButton) {
-        self.navigationController?.popViewController(animated: false)
+        self.navigationController?.popViewController(animated: true)
     }
     
     @objc func didSelectCheckButton(_ sender: UIButton) {
-        self.navigationController?.popViewController(animated: false)
+        self.navigationController?.popViewController(animated: true)
     }
     
 }
