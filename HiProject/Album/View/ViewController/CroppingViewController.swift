@@ -28,11 +28,20 @@ final class CroppingViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.setImage(UIImage(systemName: "arrow.left"), for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(didSelectCancelButton(_:)), for: .touchUpInside)
         return button
     }()
+    
+    private lazy var checkButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "checkmark"), for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(didSelectCheckButton(_:)), for: .touchUpInside)
+        return button
+    }()
+    
     
     private lazy var photoImageView: UIImageView = {
         let imageView = UIImageView()
@@ -99,7 +108,6 @@ final class CroppingViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        //guard let cgImage = selectImage.cgImage?.cropping(to: CGRect(x: 0, y: 0, width: 100, height: 100)) else { return }
         self.photoImageView.image = selectImage
     }
     
@@ -108,6 +116,7 @@ final class CroppingViewController: UIViewController {
         view.backgroundColor = .black
         
         view.addSubview(cancelButton)
+        view.addSubview(checkButton)
         view.addSubview(squareView)
         view.addSubview(topView)
         view.addSubview(leftView)
@@ -118,6 +127,7 @@ final class CroppingViewController: UIViewController {
         squareView.addSubview(cropView)
         
         view.bringSubviewToFront(cancelButton)
+        view.bringSubviewToFront(checkButton)
     }
     
     private func configLayout() {
@@ -140,6 +150,12 @@ final class CroppingViewController: UIViewController {
         cancelButton.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.leading.equalToSuperview().offset(16)
+            make.width.height.equalTo(24)
+        }
+        
+        checkButton.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            make.trailing.equalToSuperview().offset(-16)
             make.width.height.equalTo(24)
         }
         
@@ -232,6 +248,11 @@ final class CroppingViewController: UIViewController {
         self.navigationController?.popViewController(animated: false)
     }
     
+    @objc func didSelectCheckButton(_ sender: UIButton) {
+        let image = cropImage()
+        self.navigationController?.pushViewController(SelectCategoryPhotoViewController(selectImage: image), animated: true)
+    }
+    
     @objc func handlePanGesture(_ gestureRecognizer: UIPanGestureRecognizer) {
         let translation = gestureRecognizer.translation(in: cropView)
         if gestureRecognizer.state == .began {
@@ -287,6 +308,24 @@ final class CroppingViewController: UIViewController {
             cropView.linesChangeState(isCropping: false)
             gestureRecognizer.setTranslation(.zero, in: cropView)
             initialCenter = CGPoint.zero
+        }
+    }
+    
+    private func cropImage() -> UIImage {
+        self.view.layoutIfNeeded()
+        let frame = cropView.frame
+        guard let cgImage = selectImage.cgImage?.cropping(to: frame) else { return UIImage() }
+        
+        return UIImage(cgImage: cgImage)
+    }
+}
+
+extension UIImage {
+    func scaled(to newSize: CGSize) -> UIImage? {
+        // 새 크기의 비율로 변환
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            self.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 }

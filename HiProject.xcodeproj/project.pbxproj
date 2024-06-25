@@ -10,6 +10,7 @@
 		41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */; };
 		4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621A2C22BA3000C249DF /* VideoTrimmer.swift */; };
 		4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */; };
+		41C5F4232C2A930D00675316 /* SelectCategoryPhotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */; };
 		732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109B2C12CC02004285E5 /* CroppingViewController.swift */; };
 		732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109D2C12DF3D004285E5 /* CropViewModel.swift */; };
 		732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109F2C12E40C004285E5 /* CustomCropView.swift */; };
@@ -46,6 +47,7 @@
 		41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewController.swift; sourceTree = "<group>"; };
 		4191621A2C22BA3000C249DF /* VideoTrimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmer.swift; sourceTree = "<group>"; };
 		4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmerThumb.swift; sourceTree = "<group>"; };
+		41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectCategoryPhotoViewController.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
 		732A109D2C12DF3D004285E5 /* CropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CropViewModel.swift; sourceTree = "<group>"; };
 		732A109F2C12E40C004285E5 /* CustomCropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCropView.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 				73EC850D2C07055B00ABE16A /* PhotoViewController.swift */,
 				732A109B2C12CC02004285E5 /* CroppingViewController.swift */,
 				732A109F2C12E40C004285E5 /* CustomCropView.swift */,
+				41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -330,6 +333,7 @@
 				7381F37B2C0EDE60002AC710 /* SelectPhotoCollectionViewCell.swift in Sources */,
 				73EC851E2C07089000ABE16A /* PhotoCell.swift in Sources */,
 				732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */,
+				41C5F4232C2A930D00675316 /* SelectCategoryPhotoViewController.swift in Sources */,
 				7381F38A2C0F0227002AC710 /* AssetInfo.swift in Sources */,
 				7381F3812C0EE6AB002AC710 /* SignUpViewModel.swift in Sources */,
 				732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */,
@@ -409,7 +413,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -466,7 +470,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -483,6 +487,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UAG934M4Q7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HiProject/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범 사용";
@@ -511,6 +516,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UAG934M4Q7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HiProject/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "앨범 사용";
