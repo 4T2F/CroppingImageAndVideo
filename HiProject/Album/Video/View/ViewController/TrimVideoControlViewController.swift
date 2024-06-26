@@ -55,9 +55,17 @@ final class TrimVideoControlViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.setImage(UIImage(systemName: "arrow.left"), for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(didSelectCancelButton(_:)), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var checkButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "checkmark"), for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(didSelectCheckButton(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -147,6 +155,7 @@ final class TrimVideoControlViewController: UIViewController {
     private func configUserInterface() {
         view.backgroundColor = .black
         view.addSubview(cancelButton)
+        view.addSubview(checkButton)
         view.addSubview(videoBackgroundView)
         view.addSubview(trimmer)
         view.addSubview(trimmingStackView)
@@ -158,6 +167,13 @@ final class TrimVideoControlViewController: UIViewController {
             make.leading.equalToSuperview().offset(16)
             make.width.height.equalTo(24)
         }
+        
+        checkButton.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            make.trailing.equalToSuperview().offset(-16)
+            make.width.height.equalTo(24)
+        }
+        
         
         videoBackgroundView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
@@ -272,6 +288,35 @@ final class TrimVideoControlViewController: UIViewController {
         }
     }
     
+    private func trimVideoAsset() -> AVAsset {
+        guard let asset = asset else { return AVAsset() }
+        
+        let composition = AVMutableComposition()
+        
+        let startTime = trimmer.selectedRange.start
+        let endTime = trimmer.selectedRange.end
+        let timeRange = CMTimeRange(start: startTime, end: endTime)
+        
+        let videoTrackComposition = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let audioTrackComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        
+        do {
+            try videoTrackComposition?.insertTimeRange(timeRange, of: asset.tracks(withMediaType: .video)[0], at: .zero)
+            
+            if let audioTrack = asset.tracks(withMediaType: .audio).first {
+                try audioTrackComposition?.insertTimeRange(timeRange, of: audioTrack, at: .zero)
+            } else {
+                audioTrackComposition?.insertEmptyTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration))
+            }
+            
+            return composition
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            return asset
+        }
+        
+    }
+    
     // MARK: - Action
     @objc private func didBeginTrimming(_ sender: VideoTrimmer) {
         updateTrimLabel()
@@ -304,4 +349,10 @@ final class TrimVideoControlViewController: UIViewController {
     @objc func didSelectCancelButton(_ sender: UIButton) {
         self.navigationController?.popViewController(animated: false)
     }
+    
+    @objc func didSelectCheckButton(_ sender: UIButton) {
+        playerLayer.player?.pause()
+        self.navigationController?.pushViewController(SelectCategoryVideoViewController(asset: trimVideoAsset()), animated: true)
+    }
+    
 }

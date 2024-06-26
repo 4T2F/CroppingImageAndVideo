@@ -10,6 +10,8 @@
 		41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */; };
 		4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621A2C22BA3000C249DF /* VideoTrimmer.swift */; };
 		4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */; };
+		41ABDBB02C2BDED0003C38B6 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 41ABDBAF2C2BDED0003C38B6 /* SnapKit */; };
+		41ABDBB22C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ABDBB12C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift */; };
 		41C5F4232C2A930D00675316 /* SelectCategoryPhotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */; };
 		732A109C2C12CC02004285E5 /* CroppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109B2C12CC02004285E5 /* CroppingViewController.swift */; };
 		732A109E2C12DF3D004285E5 /* CropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732A109D2C12DF3D004285E5 /* CropViewModel.swift */; };
@@ -20,8 +22,6 @@
 		7353A0602BF264C4003A3578 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7353A05F2BF264C4003A3578 /* Assets.xcassets */; };
 		7353A0632BF264C4003A3578 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7353A0612BF264C4003A3578 /* LaunchScreen.storyboard */; };
 		7357A5442C0636A6004D77E3 /* LoginBirthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7357A5432C0636A6004D77E3 /* LoginBirthViewModel.swift */; };
-		736355B82C05B53300926CBB /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 736355B72C05B53300926CBB /* SnapKit */; };
-		736355BA2C05B53300926CBB /* SnapKit-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 736355B92C05B53300926CBB /* SnapKit-Dynamic */; };
 		736355BC2C05B58300926CBB /* ViewValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736355BB2C05B58300926CBB /* ViewValues.swift */; };
 		736355BE2C05B58900926CBB /* UIFont+TextStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736355BD2C05B58900926CBB /* UIFont+TextStyle.swift */; };
 		736355C12C05B59900926CBB /* CustomBirthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736355BF2C05B59900926CBB /* CustomBirthButton.swift */; };
@@ -43,10 +43,24 @@
 		73EC851E2C07089000ABE16A /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EC851D2C07089000ABE16A /* PhotoCell.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		41ABDBAA2C2BDD2C003C38B6 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewController.swift; sourceTree = "<group>"; };
 		4191621A2C22BA3000C249DF /* VideoTrimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmer.swift; sourceTree = "<group>"; };
 		4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmerThumb.swift; sourceTree = "<group>"; };
+		41ABDBB12C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectCategoryVideoViewController.swift; sourceTree = "<group>"; };
 		41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectCategoryPhotoViewController.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
 		732A109D2C12DF3D004285E5 /* CropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CropViewModel.swift; sourceTree = "<group>"; };
@@ -85,8 +99,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				736355B82C05B53300926CBB /* SnapKit in Frameworks */,
-				736355BA2C05B53300926CBB /* SnapKit-Dynamic in Frameworks */,
+				41ABDBB02C2BDED0003C38B6 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,6 +170,7 @@
 				732A109B2C12CC02004285E5 /* CroppingViewController.swift */,
 				732A109F2C12E40C004285E5 /* CustomCropView.swift */,
 				41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */,
+				41ABDBB12C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -247,6 +261,7 @@
 				7353A04F2BF264C3003A3578 /* Sources */,
 				7353A0502BF264C3003A3578 /* Frameworks */,
 				7353A0512BF264C3003A3578 /* Resources */,
+				41ABDBAA2C2BDD2C003C38B6 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -254,8 +269,7 @@
 			);
 			name = HiProject;
 			packageProductDependencies = (
-				736355B72C05B53300926CBB /* SnapKit */,
-				736355B92C05B53300926CBB /* SnapKit-Dynamic */,
+				41ABDBAF2C2BDED0003C38B6 /* SnapKit */,
 			);
 			productName = HiProject;
 			productReference = 7353A0532BF264C3003A3578 /* HiProject.app */;
@@ -286,7 +300,7 @@
 			);
 			mainGroup = 7353A04A2BF264C3003A3578;
 			packageReferences = (
-				736355B62C05B53300926CBB /* XCRemoteSwiftPackageReference "SnapKit" */,
+				41ABDBAE2C2BDED0003C38B6 /* XCRemoteSwiftPackageReference "SnapKit" */,
 			);
 			productRefGroup = 7353A0542BF264C3003A3578 /* Products */;
 			projectDirPath = "";
@@ -325,6 +339,7 @@
 				7353A0572BF264C3003A3578 /* AppDelegate.swift in Sources */,
 				7381F3882C0EF803002AC710 /* PhotoCollectionViewCell.swift in Sources */,
 				4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */,
+				41ABDBB22C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift in Sources */,
 				736355BC2C05B58300926CBB /* ViewValues.swift in Sources */,
 				732A10A02C12E40C004285E5 /* CustomCropView.swift in Sources */,
 				4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */,
@@ -548,7 +563,7 @@
 				7353A0662BF264C4003A3578 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		7353A0672BF264C4003A3578 /* Build configuration list for PBXNativeTarget "HiProject" */ = {
 			isa = XCConfigurationList;
@@ -557,12 +572,12 @@
 				7353A0692BF264C4003A3578 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		736355B62C05B53300926CBB /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+		41ABDBAE2C2BDED0003C38B6 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit";
 			requirement = {
@@ -573,15 +588,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		736355B72C05B53300926CBB /* SnapKit */ = {
+		41ABDBAF2C2BDED0003C38B6 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 736355B62C05B53300926CBB /* XCRemoteSwiftPackageReference "SnapKit" */;
+			package = 41ABDBAE2C2BDED0003C38B6 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
-		};
-		736355B92C05B53300926CBB /* SnapKit-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 736355B62C05B53300926CBB /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = "SnapKit-Dynamic";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
