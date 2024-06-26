@@ -82,7 +82,7 @@ final class SelectCategoryVideoViewController: UIViewController {
         return stackView
     }()
     
-    // MARK: - Life Cycle
+    // MARK: - Life Cycl
     init(asset: AVAsset) {
         self.asset = asset
         super.init(nibName: nil, bundle: nil)

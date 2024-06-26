@@ -50,6 +50,7 @@ final class TrimVideoControlViewController: UIViewController {
     
     // MARK: - Private properties
     private let asset: AVAsset?
+    private var soundButtonToggleValue: Bool = true
     
     private var timeObserverToken: Any?
     
@@ -58,6 +59,14 @@ final class TrimVideoControlViewController: UIViewController {
         button.setImage(UIImage(systemName: "arrow.left"), for: .normal)
         button.tintColor = .white
         button.addTarget(self, action: #selector(didSelectCancelButton(_:)), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var soundButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "speaker.wave.2"), for: .normal)
+        button.tintColor = .white
+        button.addTarget(self, action: #selector(didSelectSoundButton(_:)), for: .touchUpInside)
         return button
     }()
     
@@ -155,6 +164,7 @@ final class TrimVideoControlViewController: UIViewController {
     private func configUserInterface() {
         view.backgroundColor = .black
         view.addSubview(cancelButton)
+        view.addSubview(soundButton)
         view.addSubview(checkButton)
         view.addSubview(videoBackgroundView)
         view.addSubview(trimmer)
@@ -163,17 +173,22 @@ final class TrimVideoControlViewController: UIViewController {
     
     private func configLayout() {
         cancelButton.snp.makeConstraints { make in
-            make.top.equalTo(self.view.safeAreaLayoutGuide.snp.top).offset(20)
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.leading.equalToSuperview().offset(16)
             make.width.height.equalTo(24)
         }
-        
+
         checkButton.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.trailing.equalToSuperview().offset(-16)
             make.width.height.equalTo(24)
         }
         
+        soundButton.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
+            make.trailing.equalTo(checkButton.snp.leading).offset(-16)
+            make.width.height.equalTo(24)
+        }
         
         videoBackgroundView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
@@ -301,15 +316,22 @@ final class TrimVideoControlViewController: UIViewController {
         let audioTrackComposition = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         
         do {
-            try videoTrackComposition?.insertTimeRange(timeRange, of: asset.tracks(withMediaType: .video)[0], at: .zero)
-            
-            if let audioTrack = asset.tracks(withMediaType: .audio).first {
-                try audioTrackComposition?.insertTimeRange(timeRange, of: audioTrack, at: .zero)
-            } else {
-                audioTrackComposition?.insertEmptyTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration))
+            switch soundButtonToggleValue {
+            case true:
+                try videoTrackComposition?.insertTimeRange(timeRange, of: asset.tracks(withMediaType: .video)[0], at: .zero)
+                
+                if let audioTrack = asset.tracks(withMediaType: .audio).first {
+                    try audioTrackComposition?.insertTimeRange(timeRange, of: audioTrack, at: .zero)
+                } else {
+                    audioTrackComposition?.insertEmptyTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration))
+                }
+                return composition
+                
+            case false:
+                try videoTrackComposition?.insertTimeRange(timeRange, of: asset.tracks(withMediaType: .video)[0], at: .zero)
+                return composition
+
             }
-            
-            return composition
         } catch {
             print("Error: \(error.localizedDescription)")
             return asset
@@ -349,6 +371,21 @@ final class TrimVideoControlViewController: UIViewController {
     @objc func didSelectCancelButton(_ sender: UIButton) {
         self.navigationController?.popViewController(animated: false)
     }
+    
+    @objc func didSelectSoundButton(_ sender: UIButton) {
+        switch soundButtonToggleValue {
+        case true:
+            soundButton.setImage(UIImage(systemName: "speaker.slash"), for: .normal)
+            playerLayer.player?.isMuted = true
+            soundButtonToggleValue.toggle()
+        case false:
+            soundButton.setImage(UIImage(systemName: "speaker.wave.2"), for: .normal)
+            playerLayer.player?.isMuted = false
+            soundButtonToggleValue.toggle()
+            
+        }
+    }
+    
     
     @objc func didSelectCheckButton(_ sender: UIButton) {
         playerLayer.player?.pause()
