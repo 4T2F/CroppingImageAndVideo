@@ -111,9 +111,11 @@ final class SelectCategoryPhotoViewController: UIViewController {
         
         photoImageView.snp.makeConstraints { make in
             make.top.equalTo(cancelButton.snp.bottom).offset(16)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(UIScreen.main.bounds.width * 1.16)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(ViewValues.width)
         }
+        
+        print(selectImage.size)
         
         selectCategoryTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(photoImageView.snp.bottom).offset(32)

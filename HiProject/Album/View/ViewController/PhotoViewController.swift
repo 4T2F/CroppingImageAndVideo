@@ -265,7 +265,7 @@ extension PhotoViewController: UICollectionViewDelegate {
             viewModel.fetchImage(
                 item: indexPath.item,
                 size: CGSize(width: ViewValues.width, height: ViewValues.height),
-                contentMode: .aspectFit,
+                contentMode: .default,
                 version: .current
             ) { _, image in
                 

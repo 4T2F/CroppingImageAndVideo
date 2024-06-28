@@ -20,7 +20,7 @@ final class SelectCategoryVideoViewController: UIViewController {
         button.tintColor = .white
         return button
     }()
-    
+
     private lazy var checkButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "checkmark"), for: .normal)
@@ -30,8 +30,7 @@ final class SelectCategoryVideoViewController: UIViewController {
     
     private lazy var photoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.isUserInteractionEnabled = true
+        imageView.contentMode = .scaleToFill
         return imageView
     }()
     
