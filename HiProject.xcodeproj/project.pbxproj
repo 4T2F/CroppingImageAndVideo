@@ -10,6 +10,7 @@
 		41884B892C16DB800023D76B /* TrimVideoControlViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */; };
 		4191621B2C22BA3000C249DF /* VideoTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621A2C22BA3000C249DF /* VideoTrimmer.swift */; };
 		4191621D2C22BB1400C249DF /* VideoTrimmerThumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */; };
+		41A8BA042C33D7A800DDB0B7 /* SpinnerDisplayable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A8BA032C33D7A800DDB0B7 /* SpinnerDisplayable.swift */; };
 		41ABDBB02C2BDED0003C38B6 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 41ABDBAF2C2BDED0003C38B6 /* SnapKit */; };
 		41ABDBB22C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41ABDBB12C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift */; };
 		41C5F4232C2A930D00675316 /* SelectCategoryPhotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */; };
@@ -60,6 +61,7 @@
 		41884B882C16DB800023D76B /* TrimVideoControlViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimVideoControlViewController.swift; sourceTree = "<group>"; };
 		4191621A2C22BA3000C249DF /* VideoTrimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmer.swift; sourceTree = "<group>"; };
 		4191621C2C22BB1400C249DF /* VideoTrimmerThumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmerThumb.swift; sourceTree = "<group>"; };
+		41A8BA032C33D7A800DDB0B7 /* SpinnerDisplayable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerDisplayable.swift; sourceTree = "<group>"; };
 		41ABDBB12C2BE3CF003C38B6 /* SelectCategoryVideoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectCategoryVideoViewController.swift; sourceTree = "<group>"; };
 		41C5F4222C2A930D00675316 /* SelectCategoryPhotoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectCategoryPhotoViewController.swift; sourceTree = "<group>"; };
 		732A109B2C12CC02004285E5 /* CroppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CroppingViewController.swift; sourceTree = "<group>"; };
@@ -132,6 +134,14 @@
 			path = ViewController;
 			sourceTree = "<group>";
 		};
+		41A8BA022C33D79300DDB0B7 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				41A8BA032C33D7A800DDB0B7 /* SpinnerDisplayable.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		7353A04A2BF264C3003A3578 = {
 			isa = PBXGroup;
 			children = (
@@ -151,6 +161,7 @@
 		7353A0552BF264C3003A3578 /* HiProject */ = {
 			isa = PBXGroup;
 			children = (
+				41A8BA022C33D79300DDB0B7 /* Components */,
 				7353A0562BF264C3003A3578 /* AppDelegate.swift */,
 				7353A0582BF264C3003A3578 /* SceneDelegate.swift */,
 				73EC851C2C07084800ABE16A /* Login */,
@@ -356,6 +367,7 @@
 				736355C22C05B59900926CBB /* CustomServiceButton.swift in Sources */,
 				736355C82C05B9DC00926CBB /* LoginBirthSelectViewController.swift in Sources */,
 				73EC85162C07072F00ABE16A /* PhotoAuthService.swift in Sources */,
+				41A8BA042C33D7A800DDB0B7 /* SpinnerDisplayable.swift in Sources */,
 				7381F3832C0EE6ED002AC710 /* Album.swift in Sources */,
 				7353A0592BF264C3003A3578 /* SceneDelegate.swift in Sources */,
 				73EC851A2C07082900ABE16A /* SelectPhotoViewController.swift in Sources */,

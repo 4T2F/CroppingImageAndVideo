@@ -42,6 +42,11 @@ struct ViewValues {
     static let selectPhotoCellWidth = width * 0.69
     static let cellWidth = (width - 48) / 2
     static let cellHeight = selectPhotoCellWidth * 1.17
+    
+    // MARK: - Spinner
+    static let tagIdentifierSpinner = 123
+    static let opacityContainerSpinner = 0.3
+
 }
 
 protocol Reusable { }
